@@ -1,27 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-deployment
+  name: lex-api
+  namespace: default
   labels:
-    app: product
+    app: lex-api
+    tier: backend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: product
+      app: lex-api
   template:
     metadata:
       labels:
-        app: product
+        app: lex-api
+        tier: backend
     spec:
       containers:
-      - name: product
-        image: 337112169365.dkr.ecr.ap-northeast-2.amazonaws.com/blossom/product-api:latest
+      - name: lex-api
+        image: 337112169365.dkr.ecr.ap-northeast-2.amazonaws.com/blossom/lex-api
+        imagePullPolicy: Always
         ports:
-        - containerPort: 3002
+        - containerPort: 3006
+          protocol: TCP
+        env:
         env:
         - name: PORT
-          value: "3002"
+          value: "3006"
         - name: DB_HOST
           value: "sb3-u1-aurora.cluster-cpuskg4g6hoy.ap-northeast-2.rds.amazonaws.com"
         - name: DB_USER
@@ -30,21 +36,21 @@ spec:
           value: "Admin1234!"
         - name: DB_NAME
           value: "blossom"
-        - name: AWS_REGION
-          value: "ap-northeast-2"
-        - name: S3_BUCKET
-          value: "sb3-u4-eks-test"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: product-service
+  name: lex-api-service
+  namespace: default
   labels:
-    app: product
+    app: lex-api
 spec:
   type: ClusterIP
   selector:
-    app: product
+    app: lex-api
   ports:
   - port: 80
-    targetPort: 3002
+    targetPort: 3006
+    protocol: TCP
+    name: http
+  sessionAffinity: None
