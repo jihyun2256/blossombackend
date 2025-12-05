@@ -1,0 +1,57 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blossom-ingress
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          # Users API
+          - path: /users
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 80
+          # Cards API
+          - path: /cards
+            pathType: Prefix
+            backend:
+              service:
+                name: cards-service
+                port:
+                  number: 80
+          # Orders API
+          - path: /orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 80
+          # Products API
+          - path: /products
+            pathType: Prefix
+            backend:
+              service:
+                name: product-service
+                port:
+                  number: 80
+          # Payments API
+          - path: /payments
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-service
+                port:
+                  number: 80
+          
+          - - path: /cards
+              pathType: Prefix
+              backend:
+               service:
+                name: payment-service
+                port:
+                  number: 80

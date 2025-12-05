@@ -1,0 +1,3952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메가팡 - 전자상거래 플랫폼</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .cart-badge {
+            position: relative;
+        }
+
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .auth-container {
+            max-width: 500px;
+            margin: 4rem auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .address-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .address-group input {
+            flex: 1;
+        }
+
+        .btn-address {
+            padding: 0.875rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-address:hover {
+            background: #5568d3;
+        }
+
+        .form-input[readonly] {
+            background: #f8f9fa;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.875rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f3f5;
+            color: #333;
+            margin-top: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee5a6f;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #666;
+        }
+
+        .link-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .link-text a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: #ffe0e0;
+            color: #c41e3a;
+            border: 1px solid #ffb3b3;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .hero {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .product-stock {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            margin: 2rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+        }
+
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .quantity-control {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .cart-total {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e9ecef;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        /* Admin Dashboard Styles */
+        .admin-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        .admin-sidebar {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .admin-menu-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-menu-item:hover {
+            background: #f8f9fa;
+        }
+
+        .admin-menu-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+        }
+
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ff4757;
+            color: white;
+        }
+
+        .payment-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-top: 2rem;
+        }
+
+        .payment-method {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-option {
+            flex: 1;
+            padding: 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .payment-option:hover {
+            border-color: #667eea;
+        }
+
+        .payment-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .card-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* MyPage Styles */
+        .mypage-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .mypage-sidebar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .mypage-menu-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mypage-menu-item:hover {
+            background: #f8f9fa;
+        }
+
+        .mypage-menu-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .mypage-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+        }
+
+        .profile-section {
+            margin-bottom: 2rem;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .profile-info h2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-info p {
+            color: #666;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .order-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: box-shadow 0.3s;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .order-id {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .order-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .order-items {
+            margin-bottom: 1rem;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-item-icon {
+            font-size: 2rem;
+        }
+
+        .order-item-details {
+            flex: 1;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .order-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .delivery-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .delivery-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .delivery-step:not(:last-child)::after {
+            content: '→';
+            position: absolute;
+            right: -1rem;
+            color: #ddd;
+            font-size: 1.5rem;
+        }
+
+        .delivery-step.active {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .delivery-step.completed {
+            color: #2ecc71;
+        }
+
+        .delivery-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tracking-timeline {
+            margin-top: 1.5rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .tracking-item {
+            padding: 1rem 0;
+            position: relative;
+        }
+
+        .tracking-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+
+        .tracking-item::after {
+            content: '';
+            position: absolute;
+            left: -1.45rem;
+            top: 1.5rem;
+            width: 2px;
+            height: 100%;
+            background: #e9ecef;
+        }
+
+        .tracking-item:last-child::after {
+            display: none;
+        }
+
+        .tracking-time {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .tracking-status {
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-sidebar {
+                position: relative;
+                top: 0;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .mypage-container {
+                grid-template-columns: 1fr;
+            }
+
+            .mypage-sidebar {
+                position: relative;
+                top: 0;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    
+    <!-- 
+    ============================================
+    ⚠️  중요: API 엔드포인트 URL을 아래에 입력하세요!
+    ============================================
+    
+    옵션 1: ALB (Application Load Balancer) 사용
+    const API_BASE_URL = "http://your-alb-name-123456789.ap-northeast-2.elb.amazonaws.com";
+    
+    옵션 2: API Gateway 사용
+    const API_BASE_URL = "https://abc123def.execute-api.ap-northeast-2.amazonaws.com/prod";
+    
+    옵션 3: 로컬 개발 (Nginx 프록시)
+    const API_BASE_URL = "http://localhost";
+    
+    옵션 4: 커스텀 도메인
+    const API_BASE_URL = "https://api.yourdomain.com";
+    -->
+    <script>
+        // 🔥 환경별 API 엔드포인트 설정 ✅
+        const DEPLOYED_ALB_BASE_URL = "http://k8s-default-apiingre-ee331f3038-651624641.ap-northeast-2.elb.amazonaws.com"; // TODO: replace with actual ALB DNS name
+        const userApiBaseUrl = DEPLOYED_ALB_BASE_URL
+
+        // 각 API 서비스의 포트를 명시적으로 지정
+        const API_URLS = {
+            users: DEPLOYED_ALB_BASE_URL,                // User API (ALB in prod, local in dev)
+            orders: DEPLOYED_ALB_BASE_URL,     // Order API
+            products: DEPLOYED_ALB_BASE_URL,   // Product API
+            payments: DEPLOYED_ALB_BASE_URL,   // Payment API
+            cart: DEPLOYED_ALB_BASE_URL// Cart API
+        };
+        
+        // 기본 URL (하위 호환성)
+        const API_BASE_URL = DEPLOYED_ALB_BASE_URL;
+        
+        // 프로덕션 환경 (주석 처리)
+        // const API_BASE_URL = "https://be9cdaqsy7.execute-api.ap-northeast-2.amazonaws.com/prod";
+    </script>
+
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+       
+       
+        // 사용자 행동 트래킹
+        const trackUserAction = (action, data) => {
+            const event = {
+                timestamp: new Date().toISOString(),
+                action: action,
+                data: data,
+                sessionId: sessionStorage.getItem('sessionId') || Math.random().toString(36).substr(2, 9)
+            };
+            
+            if (!sessionStorage.getItem('sessionId')) {
+                sessionStorage.setItem('sessionId', event.sessionId);
+            }
+            
+            console.log('📊 User Action Tracked:', event);
+        };
+
+
+        // ============================================
+        // 🔥 API 헬퍼 함수
+        // ============================================
+        
+        // JWT 토큰 관리
+        const TokenManager = {
+            setToken: (token) => {
+                localStorage.setItem('jwt_token', token);
+            },
+            getToken: () => {
+                return localStorage.getItem('jwt_token');
+            },
+            removeToken: () => {
+                localStorage.removeItem('jwt_token');
+            },
+            getAuthHeaders: () => {
+                const token = TokenManager.getToken();
+                return token ? {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                } : {
+                    'Content-Type': 'application/json'
+                };
+            }
+        };
+
+        const API = {
+            // 사용자 API
+            login: async (email, password) => {
+        const response = await fetch(`${API_URLS.users}/users/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        if (!response.ok) throw new Error('로그인 실패');
+        const result = await response.json();
+        
+        console.log('🔐 로그인 응답:', result);
+        
+        // JWT 토큰 저장
+        if (result.success && result.token) {
+            TokenManager.setToken(result.token);
+            console.log('✅ 토큰 저장 완료:', result.token.substring(0, 20) + '...');
+            console.log('✅ 저장된 토큰 확인:', localStorage.getItem('jwt_token') ? '있음' : '없음');
+        } else {
+            console.error('❌ 토큰이 없습니다:', result);
+        }
+        
+        if (result.success && result.user) return { message: "Login successful", user: result.user, token: result.token };
+        return result;
+    },
+
+    register: async (userData) => {
+	
+		console.log("📌 회원가입 요청 URL:", url);
+		console.log("📌 회원가입 요청 데이터:", userData);
+		
+		const url = `${API_URLS.users}/users/register`;
+
+    console.log("📌 회원가입 요청 URL:", url);
+    console.log("📌 회원가입 요청 데이터:", userData);
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
+
+        console.log("📌 서버 응답 status:", response.status);
+
+        if (!response.ok) {
+            console.error("❌ 회원가입 실패 - 응답 내용:", await response.text());
+            throw new Error('회원가입 실패');
+        }
+
+        const data = await response.json();
+        console.log("📌 회원가입 응답 데이터:", data);
+
+        return data;
+
+    } catch (err) {
+        console.error("🔥 회원가입 요청 중 오류 발생:", err);
+        throw err;
+    }
+	
+      //  const response = await fetch(`${API_URLS.users}/register`, {
+     //       method: 'POST',
+     //       headers: { 'Content-Type': 'application/json' },
+     //       body: JSON.stringify(userData)
+     //   });
+     //   if (!response.ok) throw new Error('회원가입 실패');
+     //   return await response.json();
+    },
+
+    // ===========================
+    // 📦 상품 API
+    // ===========================
+    getProducts: async () => {
+        const response = await fetch(`${API_URLS.products}/products`);
+        if (!response.ok) throw new Error('상품 로드 실패');
+        const data = await response.json();
+        return data.products || [];
+    },
+
+    // ===========================
+    // 🛍️ 주문 API
+    // ===========================
+    createOrder: async (orderData) => {
+        const response = await fetch(`${API_URLS.orders}/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
+        if (!response.ok) throw new Error('주문 생성 실패');
+        return await response.json();
+    },
+
+    getUserOrders: async (userId) => {
+        try {
+            const response = await fetch(`${API_URLS.orders}/orders/user/${userId}`);
+            if (!response.ok) throw new Error('로드 실패');
+            const data = await response.json();
+            
+            // 🔥 안전장치: data.orders가 없으면 빈 배열 반환
+            return Array.isArray(data.orders) ? data.orders : []; 
+        } catch (error) {
+            console.error(error);
+            return []; // 에러 나면 빈 배열 반환
+        }
+    },
+
+    // 🔥 [관리자용] 모든 주문 목록 조회 (새로 추가됨)
+    getAllOrders: async () => {
+        try {
+            const response = await fetch(`${API_URLS.orders}/orders`);
+            if (!response.ok) throw new Error('로드 실패');
+            const data = await response.json();
+            
+            // 🔥 안전장치 추가
+            return Array.isArray(data.orders) ? data.orders : [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
+    },
+    // ===========================
+    // 💳 결제 API (Payment 폴더 연동) - JWT 인증 적용
+    // ===========================
+    // 주문 생성 (Payment API)
+    createPaymentOrder: async (userId, items, totalPrice) => {
+        const response = await fetch('http://localhost:3004/orders', {
+            method: 'POST',
+            headers: TokenManager.getAuthHeaders(),
+            body: JSON.stringify({
+                user_id: userId,
+                items: items,
+                total_price: totalPrice
+            })
+        });
+        
+        // 401 에러 시 토큰 만료 처리
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+        }
+        
+        if (!response.ok) throw new Error('주문 생성 실패');
+        return await response.json();
+    },
+
+    // 결제 처리 (Payment API)
+    processPayment: async (orderId, paymentMethod, cardData = null) => {
+        try {
+            // UUID v4 생성 (idempotency key)
+            const idempotencyKey = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+
+            const requestBody = {
+                order_id: parseInt(orderId),
+                payment_method: String(paymentMethod),
+                idempotency_key: String(idempotencyKey)
+            };
+            
+            // 카드 정보 추가 (있는 경우)
+            if (cardData) {
+                requestBody.card_data = {
+                    card_number: String(cardData.card_number || ''),
+                    card_holder: String(cardData.card_holder || ''),
+                    expiry: String(cardData.expiry || ''),
+                    cvv: String(cardData.cvv || ''),
+                    saved_card_id: cardData.saved_card_id ? parseInt(cardData.saved_card_id) : undefined
+                };
+            }
+
+            // 토큰 확인
+            const token = TokenManager.getToken();
+            console.log('🔐 현재 토큰:', token ? token.substring(0, 20) + '...' : '없음');
+            
+            const headers = TokenManager.getAuthHeaders();
+            console.log('📋 요청 헤더:', {
+                'Content-Type': headers['Content-Type'],
+                'Authorization': headers['Authorization'] ? headers['Authorization'].substring(0, 30) + '...' : '없음'
+            });
+
+            console.log('📤 Payment API 요청:', {
+                url: 'http://localhost:3004/payments',
+                method: 'POST',
+                body: requestBody
+            });
+
+            let requestBodyJson;
+            try {
+                requestBodyJson = JSON.stringify(requestBody);
+                console.log('✅ JSON 직렬화 성공');
+            } catch (jsonError) {
+                console.error('❌ JSON 직렬화 실패:', jsonError);
+                throw new Error('요청 데이터 변환 실패: ' + jsonError.message);
+            }
+
+            const response = await fetch('http://localhost:3004/payments', {
+                method: 'POST',
+                headers: headers,
+                body: requestBodyJson
+            });
+            
+            console.log('📥 Payment API 응답 상태:', response.status);
+            
+            // 401 에러 시 토큰 만료 처리
+            if (response.status === 401) {
+                TokenManager.removeToken();
+                throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+            }
+            
+            if (!response.ok) {
+                const err = await response.json();
+                console.error('❌ 결제 API 에러 (상태: ' + response.status + '):', err);
+                throw new Error(err.message || err.error_message || '결제 처리에 실패했습니다.');
+            }
+            const result = await response.json();
+            console.log('✅ 결제 API 응답:', result);
+            return result;
+        } catch (error) {
+            console.error('❌ Payment API 호출 실패:', error);
+            throw error;
+        }
+    },
+
+    // 결제 조회 (Payment API)
+    getPayment: async (paymentId) => {
+        const response = await fetch(`http://localhost:3004/payments/${paymentId}`, {
+            headers: TokenManager.getAuthHeaders()
+        });
+        
+        // 401 에러 시 토큰 만료 처리
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+        }
+        
+        if (!response.ok) throw new Error('결제 조회 실패');
+        return await response.json();
+    },
+
+    // 결제 취소 (Payment API)
+    cancelPayment: async (paymentId, reason) => {
+        const response = await fetch(`http://localhost:3004/payments/${paymentId}/cancel`, {
+            method: 'POST',
+            headers: TokenManager.getAuthHeaders(),
+            body: JSON.stringify({ reason: reason || '고객 요청' })
+        });
+        
+        // 401 에러 시 토큰 만료 처리
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+        }
+        
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || '결제 취소에 실패했습니다.');
+        }
+        return await response.json();
+    },
+
+    // ===========================
+    // ⚙️ 관리자 API (주문 상태 변경)
+    // ===========================
+    updateOrderStatus: async (orderId, status) => {
+        const response = await fetch(`${API_URLS.orders}/orders/${orderId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+
+        if (!response.ok) {
+            throw new Error('상태 변경 실패');
+        }
+        return await response.json();
+    },
+
+    // ===========================
+    // 💳 카드 관리 API
+    // ===========================
+    // 저장된 카드 목록 조회
+    getSavedCards: async () => {
+        const response = await fetch(`${API_URLS.users}/cards`, {
+            headers: TokenManager.getAuthHeaders()
+        });
+        
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다.');
+        }
+        
+        if (!response.ok) throw new Error('카드 목록 조회 실패');
+        const data = await response.json();
+        return data.cards || [];
+    },
+
+    // 새 카드 저장
+    saveCard: async (cardData) => {
+        const response = await fetch(`${API_URLS.users}/cards`, {
+            method: 'POST',
+            headers: TokenManager.getAuthHeaders(),
+            body: JSON.stringify(cardData)
+        });
+        
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다.');
+        }
+        
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || '카드 저장 실패');
+        }
+        return await response.json();
+    },
+
+    // 기본 카드 설정
+    setDefaultCard: async (cardId) => {
+        const response = await fetch(`${API_URLS.users}/cards/${cardId}/default`, {
+            method: 'PUT',
+            headers: TokenManager.getAuthHeaders()
+        });
+        
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다.');
+        }
+        
+        if (!response.ok) throw new Error('기본 카드 설정 실패');
+        return await response.json();
+    },
+
+    // 카드 삭제
+    deleteCard: async (cardId) => {
+        const response = await fetch(`${API_URLS.users}/cards/${cardId}`, {
+            method: 'DELETE',
+            headers: TokenManager.getAuthHeaders()
+        });
+        
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다.');
+        }
+        
+        if (!response.ok) throw new Error('카드 삭제 실패');
+        return await response.json();
+    }
+};
+
+
+
+        // ============================================
+        // 스토리지 헬퍼 (API 우선, localStorage fallback)
+        // ============================================
+        const Storage = {
+            getUsers: () => {
+                // localStorage fallback (로컬 테스트용)
+                const users = localStorage.getItem('megapang_users');
+                return users ? JSON.parse(users) : [];
+            },
+            saveUsers: (users) => {
+                localStorage.setItem('megapang_users', JSON.stringify(users));
+            },
+            getOrders: () => {
+                const orders = localStorage.getItem('megapang_orders');
+                return orders ? JSON.parse(orders) : [];
+            },
+            saveOrders: (orders) => {
+                localStorage.setItem('megapang_orders', JSON.stringify(orders));
+            },
+            getProducts: () => {
+                const products = localStorage.getItem('megapang_products');
+                return products ? JSON.parse(products) : initialProducts;
+            },
+            saveProducts: (products) => {
+                localStorage.setItem('megapang_products', JSON.stringify(products));
+            }
+        };
+
+
+        // 로그인 컴포넌트
+        function LoginPage({ onLogin, onSwitchToRegister }) {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+
+                try {
+                    const result = await API.login(email, password);
+                    
+                    if (result.message === "Login successful" && result.user) {
+                        trackUserAction('login', { userId: result.user.id, email: result.user.email });
+                        onLogin(result.user);
+                    } else {
+                        throw new Error('로그인 응답이 올바르지 않습니다');
+                    }
+                } catch (error) {
+                    setError(error.message || '이메일 또는 비밀번호가 올바르지 않습니다');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="auth-container">
+                    <div className="auth-header">
+                        <h1>🚀 메가팡 로그인</h1>
+                        <p>글로벌 전자상거래 플랫폼에 오신 것을 환영합니다</p>
+                    </div>
+
+                    {error && <div className="alert alert-error">{error}</div>}
+
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label className="form-label">이메일</label>
+                            <input
+                                type="email"
+                                className="form-input"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="example@email.com"
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">비밀번호</label>
+                            <input
+                                type="password"
+                                className="form-input"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="비밀번호를 입력하세요"
+                                required
+                            />
+                        </div>
+
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                            {loading ? '로그인 중...' : '로그인'}
+                        </button>
+                    </form>
+
+                    <div className="link-text">
+                        계정이 없으신가요? <a href="#" onClick={(e) => { e.preventDefault(); onSwitchToRegister(); }}>회원가입</a>
+                    </div>
+
+                    <div className="alert alert-success" style={{ marginTop: '2rem', fontSize: '0.9rem' }}>
+                        <strong>테스트 계정:</strong><br />
+                        관리자: admin@megapang.com / admin1234
+                    </div>
+                </div>
+            );
+        }
+
+        // 회원가입 컴포넌트
+        function RegisterPage({ onRegister, onSwitchToLogin }) {
+            const [formData, setFormData] = useState({
+                name: '',
+                email: '',
+                password: '',
+                confirmPassword: '',
+                phone: '',
+                postcode: '',
+                address: '',
+                detailAddress: '',
+                fullAddress: ''
+            });
+            const [error, setError] = useState('');
+            const [success, setSuccess] = useState(false);
+            const [loading, setLoading] = useState(false);
+
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.name]: e.target.value });
+            };
+
+            const openPostcode = () => {
+                new daum.Postcode({
+                    oncomplete: function(data) {
+                        let fullAddress = data.address;
+                        let extraAddress = '';
+
+                        if (data.addressType === 'R') {
+                            if (data.bname !== '') {
+                                extraAddress += data.bname;
+                            }
+                            if (data.buildingName !== '') {
+                                extraAddress += (extraAddress !== '' ? ', ' + data.buildingName : data.buildingName);
+                            }
+                            fullAddress += (extraAddress !== '' ? ' (' + extraAddress + ')' : '');
+                        }
+
+                        setFormData({
+                            ...formData,
+                            postcode: data.zonecode,
+                            address: fullAddress,
+                            fullAddress: fullAddress
+                        });
+
+                        // 상세주소 입력란에 포커스
+                        document.getElementById('detailAddress').focus();
+                    }
+                }).open();
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+
+                if (formData.password !== formData.confirmPassword) {
+                    setError('비밀번호가 일치하지 않습니다.');
+                    return;
+                }
+
+                if (formData.password.length < 6) {
+                    setError('비밀번호는 최소 6자 이상이어야 합니다.');
+                    return;
+                }
+
+                setLoading(true);
+
+                try {
+                    // 전체 주소 조합
+                    const completeAddress = formData.detailAddress 
+                        ? `${formData.address}, ${formData.detailAddress}` 
+                        : formData.address;
+
+                    const userData = {
+                        name: formData.name,
+                        email: formData.email,
+                        password: formData.password,
+                        phone: formData.phone,
+                        address: completeAddress
+                    };
+
+                    const result = await API.register(userData);
+                    
+                    setSuccess(true);
+                    trackUserAction('register', { email: formData.email });
+                    
+                    setTimeout(() => {
+                        onRegister(result);
+                    }, 1500);
+                } catch (error) {
+                    setError(error.message || '회원가입에 실패했습니다');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            if (success) {
+                return (
+                    <div className="auth-container">
+                        <div className="alert alert-success" style={{ textAlign: 'center' }}>
+                            <h2>✅ 회원가입 완료!</h2>
+                            <p>환영합니다. 로그인 페이지로 이동합니다...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="auth-container">
+                    <div className="auth-header">
+                        <h1>🚀 메가팡 회원가입</h1>
+                        <p>새로운 계정을 만들어보세요</p>
+                    </div>
+
+                    {error && <div className="alert alert-error">{error}</div>}
+
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label className="form-label">이름</label>
+                            <input
+                                type="text"
+                                name="name"
+                                className="form-input"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="홍길동"
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">이메일</label>
+                            <input
+                                type="email"
+                                name="email"
+                                className="form-input"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="example@email.com"
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">비밀번호</label>
+                            <input
+                                type="password"
+                                name="password"
+                                className="form-input"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="최소 6자 이상"
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">비밀번호 확인</label>
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                className="form-input"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                placeholder="비밀번호를 다시 입력하세요"
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">전화번호</label>
+                            <input
+                                type="tel"
+                                name="phone"
+                                className="form-input"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                placeholder="010-1234-5678"
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">주소</label>
+                            <div className="address-group">
+                                <input
+                                    type="text"
+                                    name="postcode"
+                                    className="form-input"
+                                    value={formData.postcode}
+                                    placeholder="우편번호"
+                                    readOnly
+                                    style={{ width: '120px' }}
+                                />
+                                <button 
+                                    type="button" 
+                                    className="btn-address"
+                                    onClick={openPostcode}
+                                >
+                                    🔍 주소 검색
+                                </button>
+                            </div>
+                            <input
+                                type="text"
+                                name="address"
+                                className="form-input"
+                                value={formData.address}
+                                placeholder="기본 주소"
+                                readOnly
+                                style={{ marginBottom: '0.5rem' }}
+                            />
+                            <input
+                                type="text"
+                                id="detailAddress"
+                                name="detailAddress"
+                                className="form-input"
+                                value={formData.detailAddress}
+                                onChange={handleChange}
+                                placeholder="상세 주소를 입력하세요"
+                            />
+                        </div>
+
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                            {loading ? '가입 중...' : '회원가입'}
+                        </button>
+                    </form>
+
+                    <div className="link-text">
+                        이미 계정이 있으신가요? <a href="#" onClick={(e) => { e.preventDefault(); onSwitchToLogin(); }}>로그인</a>
+                    </div>
+                </div>
+            );
+        }
+
+        // 상품 목록 컴포넌트
+        function ProductList({ user, onLogout }) {
+            const [products, setProducts] = useState([]);
+            const [cart, setCart] = useState([]);
+            const [showCart, setShowCart] = useState(false);
+            const [showCheckout, setShowCheckout] = useState(false);
+            const [showMyPage, setShowMyPage] = useState(false);
+            const [loading, setLoading] = useState(true);
+
+            // 컴포넌트 마운트 시 상품 목록 로드
+            useEffect(() => {
+                loadProducts();
+            }, []);
+
+            const loadProducts = async () => {
+                try {
+                    setLoading(true);
+                    const productsData = await API.getProducts();
+                    setProducts(productsData);
+                } catch (error) {
+                    console.error('상품 로드 실패:', error);
+                    // Fallback: localStorage 사용
+                    setProducts(Storage.getProducts());
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const addToCart = (product) => {
+                if (product.stock === 0) {
+                    alert('재고가 없습니다.');
+                    return;
+                }
+
+                const existingItem = cart.find(item => item.id === product.id);
+                
+                if (existingItem) {
+                    if (existingItem.quantity >= product.stock) {
+                        alert('재고가 부족합니다.');
+                        return;
+                    }
+                    setCart(cart.map(item =>
+                        item.id === product.id
+                            ? { ...item, quantity: item.quantity + 1 }
+                            : item
+                    ));
+                } else {
+                    setCart([...cart, { ...product, quantity: 1 }]);
+                }
+
+                trackUserAction('add_to_cart', {
+                    productId: product.id,
+                    productName: product.name,
+                    price: product.price
+                });
+            };
+
+            const updateQuantity = (productId, change) => {
+                setCart(cart.map(item => {
+                    if (item.id === productId) {
+                        const newQuantity = Math.max(1, item.quantity + change);
+                        const product = products.find(p => p.id === productId);
+                        return { ...item, quantity: Math.min(newQuantity, product.stock) };
+                    }
+                    return item;
+                }));
+            };
+
+            const removeFromCart = (productId) => {
+                setCart(cart.filter(item => item.id !== productId));
+                trackUserAction('remove_from_cart', { productId });
+            };
+
+            const getTotalPrice = () => {
+                return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            };
+
+            return (
+                <>
+                    <header className="header">
+                        <div className="header-content">
+                            <div className="logo" onClick={() => setShowMyPage(false)}>
+                                🚀 메가팡
+                            </div>
+                            <nav className="nav">
+                                <span style={{ opacity: 0.9 }}>👤 {user.name}님</span>
+                                <button 
+                                    className="nav-btn"
+                                    onClick={() => setShowMyPage(true)}
+                                >
+                                    👤 마이페이지
+                                </button>
+                                {user.role === 'admin' && (
+                                    <button className="nav-btn" onClick={() => window.location.reload()}>
+                                        ⚙️ 관리자
+                                    </button>
+                                )}
+                                <button 
+                                    className="nav-btn cart-badge"
+                                    onClick={() => setShowCart(true)}
+                                >
+                                    🛒 장바구니
+                                    {cart.length > 0 && (
+                                        <span className="badge">{cart.length}</span>
+                                    )}
+                                </button>
+                                <button className="nav-btn" onClick={onLogout}>
+                                    로그아웃
+                                </button>
+                            </nav>
+                        </div>
+                    </header>
+
+                    {showMyPage ? (
+                        <MyPage user={user} onClose={() => setShowMyPage(false)} />
+                    ) : (
+                        <div className="container">
+                            <div className="hero">
+                                <h1>글로벌 전자상거래 플랫폼</h1>
+                                <p>전 세계 어디서나 빠르고 안전한 쇼핑 경험을 제공합니다</p>
+                            </div>
+
+                            {loading ? (
+                                <div style={{ textAlign: 'center', padding: '3rem', fontSize: '1.2rem', color: '#667eea' }}>
+                                    상품 로딩 중...
+                                </div>
+                            ) : (
+                                <div className="products-grid">
+                                    {products.map(product => (
+                                        <div key={product.id} className="product-card">
+                                            <div className="product-image">
+    {product.image_url ? (
+        <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    ) : (
+        product.icon || '📦'
+    )}
+</div>
+                                            <div className="product-info">
+                                                <div className="product-name">{product.name}</div>
+                                                <div className="product-description">{product.description}</div>
+                                                <div className="product-price">₩{product.price.toLocaleString()}</div>
+                                                <div className="product-stock">재고: {product.stock}개</div>
+                                                <button 
+                                                    className="btn btn-primary"
+                                                    onClick={() => addToCart(product)}
+                                                    disabled={product.stock === 0}
+                                                >
+                                                    {product.stock > 0 ? '장바구니에 담기' : '품절'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {showCart && (
+                        <CartModal
+                            cart={cart}
+                            onClose={() => setShowCart(false)}
+                            onUpdateQuantity={updateQuantity}
+                            onRemove={removeFromCart}
+                            onCheckout={() => {
+                                setShowCart(false);
+                                setShowCheckout(true);
+                            }}
+                            getTotalPrice={getTotalPrice}
+                        />
+                    )}
+
+                    {showCheckout && (
+                        <CheckoutModal
+                            user={user}
+                            cart={cart}
+                            totalPrice={getTotalPrice()}
+                            onClose={() => setShowCheckout(false)}
+                            onComplete={() => {
+                                // 재고 업데이트
+                                const updatedProducts = products.map(product => {
+                                    const cartItem = cart.find(item => item.id === product.id);
+                                    if (cartItem) {
+                                        return { ...product, stock: product.stock - cartItem.quantity };
+                                    }
+                                    return product;
+                                });
+                                setProducts(updatedProducts);
+                                Storage.saveProducts(updatedProducts);
+                                setCart([]);
+                                setShowCheckout(false);
+                            }}
+                        />
+                    )}
+                </>
+            );
+        }
+
+        // 마이페이지 컴포넌트
+        function MyPage({ user, onClose }) {
+    const [activeTab, setActiveTab] = useState('profile');
+    const [editMode, setEditMode] = useState(false);
+    const [userOrders, setUserOrders] = useState([]);
+    const [loadingOrders, setLoadingOrders] = useState(false);
+    const [savedCards, setSavedCards] = useState([]);
+    const [loadingCards, setLoadingCards] = useState(false);
+    const [showAddCard, setShowAddCard] = useState(false);
+    const [profileData, setProfileData] = useState({
+        name: user.name,
+        email: user.email,
+        phone: user.phone || '',
+        postcode: user.postcode || '',
+        address: user.address || '',
+        detailAddress: ''
+    });
+    const [newCard, setNewCard] = useState({
+        card_holder: '',
+        card_type: 'visa',
+        card_number: '',
+        last_four_digits: '',
+        expiry_month: '',
+        expiry_year: '',
+        cvv: '',
+        is_default: false
+    });
+
+    // 탭이 바뀔 때마다 데이터 로드
+    useEffect(() => {
+        if (activeTab === 'orders' || activeTab === 'delivery') {
+            loadOrders();
+        } else if (activeTab === 'cards') {
+            loadCards();
+        }
+    }, [activeTab]);
+
+            const loadOrders = async () => {
+                try {
+                    setLoadingOrders(true);
+                    const userId = user.user_id || user.id;
+
+            if (!userId) {
+                console.error("User ID not found:", user);
+                return;
+            }
+
+            // API 호출 (DB 데이터)
+            const orders = await API.getUserOrders(userId);
+            setUserOrders(orders);
+
+        } catch (error) {
+            console.error('주문 내역 로드 실패:', error);
+            setUserOrders([]);
+        } finally {
+            setLoadingOrders(false);
+        }
+    };
+
+    const loadCards = async () => {
+        try {
+            setLoadingCards(true);
+            const cards = await API.getSavedCards();
+            setSavedCards(cards);
+        } catch (error) {
+            console.error('카드 목록 로드 실패:', error);
+            alert(error.message);
+        } finally {
+            setLoadingCards(false);
+        }
+    };
+
+    const handleAddCard = async (e) => {
+        e.preventDefault();
+        try {
+            // 카드번호에서 마지막 4자리 추출
+            const lastFour = newCard.card_number.replace(/\s/g, '').slice(-4);
+            
+            const cardData = {
+                card_holder: newCard.card_holder,
+                card_type: newCard.card_type,
+                last_four_digits: lastFour,
+                expiry_month: newCard.expiry_month,
+                expiry_year: newCard.expiry_year,
+                is_default: newCard.is_default
+            };
+            
+            await API.saveCard(cardData);
+            alert('카드가 저장되었습니다.');
+            setShowAddCard(false);
+            setNewCard({
+                card_holder: '',
+                card_type: 'visa',
+                card_number: '',
+                last_four_digits: '',
+                expiry_month: '',
+                expiry_year: '',
+                cvv: '',
+                is_default: false
+            });
+            loadCards();
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+    const handleSetDefaultCard = async (cardId) => {
+        try {
+            await API.setDefaultCard(cardId);
+            alert('기본 카드로 설정되었습니다.');
+            loadCards();
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+    const handleDeleteCard = async (cardId) => {
+        if (!confirm('이 카드를 삭제하시겠습니까?')) return;
+        try {
+            await API.deleteCard(cardId);
+            alert('카드가 삭제되었습니다.');
+            loadCards();
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+            const openPostcode = () => {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                let fullAddress = data.address;
+                let extraAddress = '';
+                if (data.addressType === 'R') {
+                    if (data.bname !== '') extraAddress += data.bname;
+                    if (data.buildingName !== '') extraAddress += (extraAddress !== '' ? ', ' + data.buildingName : data.buildingName);
+                    fullAddress += (extraAddress !== '' ? ' (' + extraAddress + ')' : '');
+                }
+                setProfileData({ ...profileData, postcode: data.zonecode, address: fullAddress });
+                document.getElementById('mypage-detailAddress').focus();
+            }
+        }).open();
+    };
+
+                const handleProfileUpdate = (e) => {
+        e.preventDefault();
+        alert('프로필 업데이트 기능은 아직 구현되지 않았습니다. (DB 연동 필요)');
+        setEditMode(false);
+    };
+
+            return (
+                <div className="container">
+                    <div className="mypage-container">
+                        <div className="mypage-sidebar">
+                            <div 
+                                className={`mypage-menu-item ${activeTab === 'profile' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('profile')}
+                            >
+                                👤 내 정보
+                            </div>
+                            <div 
+                                className={`mypage-menu-item ${activeTab === 'orders' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('orders')}
+                            >
+                                📦 주문 내역
+                            </div>
+                            <div 
+                                className={`mypage-menu-item ${activeTab === 'delivery' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('delivery')}
+                            >
+                                🚚 배송 조회
+                            </div>
+                            <div 
+                                className={`mypage-menu-item ${activeTab === 'cards' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('cards')}
+                            >
+                                💳 카드 관리
+                            </div>
+                        </div>
+
+                        <div className="mypage-content">
+                            {activeTab === 'profile' && (
+                                <div className="profile-section">
+                                    <div className="profile-header">
+                                <div className="profile-avatar">👤</div>
+                                <div className="profile-info">
+                                    <h2>{user.name}님</h2>
+                                    <p>{user.email}</p>
+                                </div>
+                            </div>
+
+                                    {!editMode ? (
+                                        <>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                                <h3>기본 정보</h3>
+                                                <button 
+                                                    className="btn btn-primary"
+                                                    style={{ width: 'auto', padding: '0.5rem 1.5rem' }}
+                                                    onClick={() => setEditMode(true)}
+                                                >
+                                                    ✏️ 정보 수정
+                                                </button>
+                                            </div>
+
+                                            <div className="info-grid">
+                                <div className="info-card"><div className="info-label">이름</div><div className="info-value">{user.name}</div></div>
+                                <div className="info-card"><div className="info-label">이메일</div><div className="info-value">{user.email}</div></div>
+                                <div className="info-card"><div className="info-label">전화번호</div><div className="info-value">{user.phone || '-'}</div></div>
+                            </div>
+                                        </>
+                                    ) : (
+                                        <form onSubmit={handleProfileUpdate}>
+                                            <h3 style={{ marginBottom: '1.5rem' }}>정보 수정</h3>
+                                            
+                                            <div className="form-group">
+                                                <label className="form-label">이름</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-input"
+                                                    value={profileData.name}
+                                                    onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">이메일</label>
+                                                <input
+                                                    type="email"
+                                                    className="form-input"
+                                                    value={profileData.email}
+                                                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">전화번호</label>
+                                                <input
+                                                    type="tel"
+                                                    className="form-input"
+                                                    value={profileData.phone}
+                                                    onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                                                    placeholder="010-1234-5678"
+                                                />
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">주소</label>
+                                                <div className="address-group">
+                                                    <input
+                                                        type="text"
+                                                        className="form-input"
+                                                        value={profileData.postcode}
+                                                        placeholder="우편번호"
+                                                        readOnly
+                                                        style={{ width: '120px' }}
+                                                    />
+                                                    <button 
+                                                        type="button" 
+                                                        className="btn-address"
+                                                        onClick={openPostcode}
+                                                    >
+                                                        🔍 주소 검색
+                                                    </button>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    className="form-input"
+                                                    value={profileData.address}
+                                                    placeholder="기본 주소"
+                                                    readOnly
+                                                    style={{ marginBottom: '0.5rem' }}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    id="mypage-detailAddress"
+                                                    className="form-input"
+                                                    value={profileData.detailAddress}
+                                                    onChange={(e) => setProfileData({...profileData, detailAddress: e.target.value})}
+                                                    placeholder="상세 주소를 입력하세요"
+                                                />
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                                <button type="submit" className="btn btn-primary">
+                                                    저장
+                                                </button>
+                                                <button 
+                                                    type="button" 
+                                                    className="btn btn-secondary"
+                                                    onClick={() => {
+                                                        setEditMode(false);
+                                                        setProfileData({
+                                                            name: user.name,
+                                                            email: user.email,
+                                                            phone: user.phone || '',
+                                                            postcode: user.postcode || '',
+                                                            address: user.address || '',
+                                                            detailAddress: ''
+                                                        });
+                                                    }}
+                                                >
+                                                    취소
+                                                </button>
+                                            </div>
+                                        </form>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'orders' && (
+                        <div>
+                            <h2 style={{ marginBottom: '1.5rem' }}>주문 내역</h2>
+                            
+                            {/* 🔥 [수정됨] 데이터가 배열인지 먼저 확인하는 안전장치 추가 */}
+                            {(!Array.isArray(userOrders) || userOrders.length === 0) ? (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon">📦</div>
+                                    <h3>주문 내역이 없습니다</h3>
+                                    <p>첫 주문을 시작해보세요!</p>
+                                </div>
+                            ) : (
+                                /* 🔥 [수정됨] 원본 배열 보호를 위해 slice() 추가 */
+                                userOrders.slice().reverse().map(order => (
+                                    <div key={order.id} className="order-card">
+                                        <div className="order-header">
+                                            <div>
+                                                <div className="order-id">주문번호: {order.id}</div>
+                                                <div className="order-date">
+                                                    {/* 날짜 데이터가 없을 경우 대비 */}
+                                                    {order.created_at ? new Date(order.created_at).toLocaleString() : '-'}
+                                                </div>
+                                            </div>
+                                            <span className={`status-badge status-${order.status === 'paid' ? 'completed' : order.status}`}>
+                                                {order.status}
+                                            </span>
+                                        </div>
+
+                                        <div className="order-items">
+                                            {/* items가 없을 경우 대비 */}
+                                            {order.items && order.items.map(item => (
+                                                <div key={item.id} className="order-item">
+                                                    <div className="order-item-icon">{item.icon || '📦'}</div>
+                                                    <div className="order-item-details">
+                                                        <div style={{ fontWeight: 600 }}>{item.name}</div>
+                                                        <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                                                            수량: {item.quantity}개 | ₩{(item.price * item.quantity).toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="order-footer">
+                                            <div>
+                                                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.25rem' }}>
+                                                    결제수단: {order.payment_method === 'card' ? '신용카드' : 
+                                                              order.payment_method === 'bank' ? '계좌이체' : '휴대폰'}
+                                                </div>
+                                            </div>
+                                            <div className="order-total">
+                                                총 ₩{parseInt(order.total_price || 0).toLocaleString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+
+                            {activeTab === 'delivery' && (
+                        <div>
+                            <h2 style={{ marginBottom: '1.5rem' }}>배송 조회</h2>
+                            
+                            {/* 🔥 [수정됨] 여기도 안전장치 추가 */}
+                            {(!Array.isArray(userOrders) || userOrders.length === 0) ? (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon">🚚</div>
+                                    <h3>배송 중인 상품이 없습니다</h3>
+                                    <p>주문하신 상품의 배송 정보를 확인하세요</p>
+                                </div>
+                            ) : (
+                                userOrders.slice().reverse().map((order, index) => {
+                                    const deliverySteps = [
+                                        { icon: '📋', label: '주문접수', completed: true },
+                                        { icon: '📦', label: '상품준비', completed: ['preparing', 'shipping', 'delivered'].includes(order.status) },
+                                        { icon: '🚚', label: '배송중', completed: ['shipping', 'delivered'].includes(order.status) },
+                                        { icon: '✅', label: '배송완료', completed: ['delivered'].includes(order.status) }
+                                    ];
+
+                                    // 완료된 단계 계산 로직 수정
+                                    const currentStep = deliverySteps.filter(s => s.completed).length - 1;
+
+                                    return (
+                                        <div key={order.id} className="order-card" style={{marginBottom: '2rem'}}>
+                                            <div className="order-header">
+                                                <div>
+                                                    <div className="order-id">주문번호: {order.id}</div>
+                                                    <div className="order-date">
+                                                        {order.created_at ? new Date(order.created_at).toLocaleString() : '-'}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ margin: '1.5rem 0' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                                    {deliverySteps.map((step, idx) => (
+                                                        <div 
+                                                            key={idx}
+                                                            className={`delivery-step ${step.completed ? 'completed' : ''} ${idx === currentStep ? 'active' : ''}`}
+                                                        >
+                                                            <div className="delivery-icon">{step.icon}</div>
+                                                            <div style={{ fontSize: '0.9rem' }}>{step.label}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="tracking-timeline">
+                                                <div className="tracking-item">
+                                                    <div className="tracking-time">
+                                                        {order.created_at ? new Date(order.created_at).toLocaleString() : '-'}
+                                                    </div>
+                                                    <div className="tracking-status">
+                                                        주문이 접수되었습니다
+                                                    </div>
+                                                </div>
+                                                {/* ... 나머지 타임라인 아이템들 (기존 로직 유지하되 날짜 데이터 없을 때 대비만 추가) ... */}
+                                            </div>
+
+                                            <div style={{ 
+                                                marginTop: '1.5rem', 
+                                                padding: '1rem', 
+                                                background: '#f8f9fa', 
+                                                borderRadius: '8px' 
+                                            }}>
+                                                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+                                                    배송 주소
+                                                </div>
+                                                <div style={{ fontWeight: 600 }}>
+                                                    {user.address || '주소 정보 없음'}
+                                                </div>
+                                                <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+                                                    받는 사람: {user.name} | {user.phone}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'cards' && (
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h2>💳 카드 관리</h2>
+                                <button 
+                                    className="btn btn-primary"
+                                    style={{ width: 'auto', padding: '0.5rem 1.5rem' }}
+                                    onClick={() => setShowAddCard(true)}
+                                >
+                                    + 카드 추가
+                                </button>
+                            </div>
+
+                            {loadingCards ? (
+                                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                                    <p>로딩 중...</p>
+                                </div>
+                            ) : savedCards.length === 0 ? (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon">💳</div>
+                                    <h3>저장된 카드가 없습니다</h3>
+                                    <p>카드를 추가하여 빠른 결제를 이용하세요</p>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'grid', gap: '1rem' }}>
+                                    {savedCards.map(card => (
+                                        <div key={card.card_id} className="order-card" style={{ padding: '1.5rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                                        <span style={{ fontSize: '1.5rem' }}>
+                                                            {card.card_type === 'visa' ? '💳' : 
+                                                             card.card_type === 'mastercard' ? '💳' : 
+                                                             card.card_type === 'amex' ? '💳' : '💳'}
+                                                        </span>
+                                                        <span style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                                            {card.card_type}
+                                                        </span>
+                                                        {card.is_default && (
+                                                            <span className="status-badge status-completed" style={{ marginLeft: '0.5rem' }}>
+                                                                기본 카드
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                                                        **** **** **** {card.last_four_digits}
+                                                    </div>
+                                                    <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                                                        {card.card_holder}
+                                                    </div>
+                                                    <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                                                        만료일: {String(card.expiry_month).padStart(2, '0')}/{card.expiry_year}
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    {!card.is_default && (
+                                                        <button 
+                                                            className="action-btn btn-edit"
+                                                            onClick={() => handleSetDefaultCard(card.card_id)}
+                                                        >
+                                                            기본 설정
+                                                        </button>
+                                                    )}
+                                                    <button 
+                                                        className="action-btn btn-delete"
+                                                        onClick={() => handleDeleteCard(card.card_id)}
+                                                    >
+                                                        삭제
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {showAddCard && (
+                                <div className="modal" onClick={() => setShowAddCard(false)}>
+                                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                        <div className="modal-header">
+                                            <div className="modal-title">💳 카드 추가</div>
+                                            <button className="close-btn" onClick={() => setShowAddCard(false)}>✕</button>
+                                        </div>
+
+                                        <form onSubmit={handleAddCard}>
+                                            {/* 보안 안내 */}
+                                            <div style={{ 
+                                                background: '#e8f5e9', 
+                                                border: '1px solid #4caf50',
+                                                borderRadius: '8px',
+                                                padding: '1rem',
+                                                marginBottom: '1.5rem'
+                                            }}>
+                                                <div style={{ fontSize: '0.9rem', color: '#2e7d32' }}>
+                                                    <strong>🔒 보안 안내</strong>
+                                                    <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
+                                                        <li>카드번호와 CVV는 저장되지 않습니다</li>
+                                                        <li>결제 토큰만 안전하게 보관됩니다</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                            {/* 카드번호 */}
+                                            <div className="form-group">
+                                                <label className="form-label">카드번호</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-input"
+                                                    value={newCard.card_number}
+                                                    onChange={(e) => {
+                                                        let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+                                                        if (value.length > 16) value = value.slice(0, 16);
+                                                        // 4자리마다 공백 추가
+                                                        const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                                                        setNewCard({...newCard, card_number: formatted});
+                                                    }}
+                                                    placeholder="1234 5678 9012 3456"
+                                                    maxLength="19"
+                                                    required
+                                                    style={{ 
+                                                        fontSize: '1.1rem',
+                                                        letterSpacing: '0.05em',
+                                                        fontFamily: 'monospace'
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* 카드 소유자 이름 */}
+                                            <div className="form-group">
+                                                <label className="form-label">카드 소유자 이름</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-input"
+                                                    value={newCard.card_holder}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.toUpperCase();
+                                                        setNewCard({...newCard, card_holder: value});
+                                                    }}
+                                                    placeholder="HONG GILDONG"
+                                                    required
+                                                    style={{ 
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.05em'
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* 만료일과 CVV */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                                <div className="form-group">
+                                                    <label className="form-label">만료일</label>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                        <input
+                                                            type="text"
+                                                            className="form-input"
+                                                            value={newCard.expiry_month || ''}
+                                                            onChange={(e) => {
+                                                                let value = e.target.value.replace(/\D/g, '');
+                                                                if (value.length > 2) value = value.slice(0, 2);
+                                                                const num = parseInt(value);
+                                                                if (value === '' || (num >= 1 && num <= 12)) {
+                                                                    setNewCard({...newCard, expiry_month: value});
+                                                                }
+                                                            }}
+                                                            placeholder="MM"
+                                                            maxLength="2"
+                                                            required
+                                                            style={{ 
+                                                                fontSize: '1.1rem',
+                                                                fontFamily: 'monospace',
+                                                                textAlign: 'center'
+                                                            }}
+                                                        />
+                                                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>/</span>
+                                                        <input
+                                                            type="text"
+                                                            className="form-input"
+                                                            value={newCard.expiry_year ? String(newCard.expiry_year).slice(-2) : ''}
+                                                            onChange={(e) => {
+                                                                let value = e.target.value.replace(/\D/g, '');
+                                                                if (value.length > 2) value = value.slice(0, 2);
+                                                                if (value.length === 2) {
+                                                                    setNewCard({...newCard, expiry_year: parseInt('20' + value)});
+                                                                } else {
+                                                                    setNewCard({...newCard, expiry_year: value});
+                                                                }
+                                                            }}
+                                                            placeholder="YY"
+                                                            maxLength="2"
+                                                            required
+                                                            style={{ 
+                                                                fontSize: '1.1rem',
+                                                                fontFamily: 'monospace',
+                                                                textAlign: 'center'
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label className="form-label">CVV</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-input"
+                                                        value={newCard.cvv}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                                            setNewCard({...newCard, cvv: value});
+                                                        }}
+                                                        placeholder="123"
+                                                        maxLength="4"
+                                                        required
+                                                        style={{ 
+                                                            fontSize: '1.1rem',
+                                                            fontFamily: 'monospace'
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* 안전한 결제 안내 */}
+                                            <div style={{ 
+                                                background: '#e3f2fd', 
+                                                borderRadius: '8px',
+                                                padding: '1rem',
+                                                marginTop: '1rem',
+                                                marginBottom: '1.5rem'
+                                            }}>
+                                                <div style={{ fontSize: '0.85rem', color: '#1565c0' }}>
+                                                    <strong>💡 안전한 결제:</strong> 모든 결제는 암호화되어 안전하게 처리됩니다. 
+                                                    중복 결제 방지 시스템이 적용되어 있습니다.
+                                                </div>
+                                            </div>
+
+                                            {/* 기본 카드 설정 */}
+                                            <div className="form-group">
+                                                <label style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '0.5rem', 
+                                                    cursor: 'pointer',
+                                                    padding: '0.75rem',
+                                                    background: '#f8f9fa',
+                                                    borderRadius: '8px'
+                                                }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={newCard.is_default}
+                                                        onChange={(e) => setNewCard({...newCard, is_default: e.target.checked})}
+                                                        style={{ width: '18px', height: '18px' }}
+                                                    />
+                                                    <span style={{ fontWeight: 500 }}>기본 카드로 설정</span>
+                                                </label>
+                                            </div>
+
+                                            <button type="submit" className="btn btn-primary" style={{ 
+                                                marginTop: '1rem',
+                                                padding: '1rem',
+                                                fontSize: '1.1rem'
+                                            }}>
+                                                💳 카드 저장
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+        // 장바구니 모달
+        function CartModal({ cart, onClose, onUpdateQuantity, onRemove, onCheckout, getTotalPrice }) {
+            return (
+                <div className="modal" onClick={onClose}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div className="modal-title">🛒 장바구니</div>
+                            <button className="close-btn" onClick={onClose}>✕</button>
+                        </div>
+
+                        {cart.length === 0 ? (
+                            <div className="empty-cart">
+                                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🛒</div>
+                                <p>장바구니가 비어있습니다</p>
+                            </div>
+                        ) : (
+                            <>
+                                {cart.map(item => (
+                                    <div key={item.id} className="cart-item">
+                                        <div className="cart-item-image">{item.icon}</div>
+                                        <div className="cart-item-info">
+                                            <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
+                                                {item.name}
+                                            </div>
+                                            <div style={{ color: '#667eea', fontWeight: 'bold' }}>
+                                                ₩{item.price.toLocaleString()}
+                                            </div>
+                                            <div className="quantity-control">
+                                                <button 
+                                                    className="quantity-btn"
+                                                    onClick={() => onUpdateQuantity(item.id, -1)}
+                                                >
+                                                    -
+                                                </button>
+                                                <span>{item.quantity}</span>
+                                                <button 
+                                                    className="quantity-btn"
+                                                    onClick={() => onUpdateQuantity(item.id, 1)}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            className="remove-btn"
+                                            onClick={() => onRemove(item.id)}
+                                        >
+                                            삭제
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <div className="cart-total">
+                                    총액: ₩{getTotalPrice().toLocaleString()}
+                                </div>
+
+                                <button 
+                                    className="btn btn-primary"
+                                    style={{ marginTop: '1rem' }}
+                                    onClick={onCheckout}
+                                >
+                                    결제하기
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // 결제 모달
+        // ============================================
+// Payment API 연동 Checkout 컴포넌트
+// index.html에 추가할 코드
+// ============================================
+
+// CheckoutModal 컴포넌트 (Payment API 연동 버전)
+function CheckoutModal({ user, cart, totalPrice, onClose, onComplete }) {
+    const [paymentMethod, setPaymentMethod] = useState('card');
+    const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
+    const [paymentResult, setPaymentResult] = useState(null);
+    
+    // 저장된 카드 관련 state
+    const [savedCards, setSavedCards] = useState([]);
+    const [selectedCardId, setSelectedCardId] = useState(null);
+    const [useNewCard, setUseNewCard] = useState(false);
+    const [loadingCards, setLoadingCards] = useState(false);
+    
+    // 카드 정보 state
+    const [cardNumber, setCardNumber] = useState('');
+    const [cardHolder, setCardHolder] = useState('');
+    const [expiry, setExpiry] = useState('');
+    const [cvv, setCvv] = useState('');
+
+    // 저장된 카드 로드
+    useEffect(() => {
+        const loadSavedCards = async () => {
+            try {
+                setLoadingCards(true);
+                const cards = await API.getSavedCards();
+                setSavedCards(cards);
+                
+                // 기본 카드가 있으면 자동 선택
+                const defaultCard = cards.find(card => card.is_default);
+                if (defaultCard) {
+                    setSelectedCardId(defaultCard.card_id);
+                    setUseNewCard(false);
+                } else if (cards.length > 0) {
+                    setSelectedCardId(cards[0].card_id);
+                    setUseNewCard(false);
+                } else {
+                    setUseNewCard(true);
+                }
+            } catch (error) {
+                console.error('카드 목록 로드 실패:', error);
+                setUseNewCard(true);
+            } finally {
+                setLoadingCards(false);
+            }
+        };
+
+        if (paymentMethod === 'card') {
+            loadSavedCards();
+        }
+    }, [paymentMethod]);
+
+    const handlePayment = async (e) => {
+        e.preventDefault();
+        setProcessing(true);
+        setError('');
+
+        try {
+            // 1단계: Payment API로 주문 생성
+            console.log('📝 주문 생성 중...');
+            const userId = user.user_id || user.id;
+            
+            const orderItems = cart.map(item => ({
+                product_id: item.id,
+                quantity: item.quantity,
+                price: item.price
+            }));
+
+            const orderResponse = await API.createPaymentOrder(
+                userId,
+                orderItems,
+                totalPrice
+            );
+
+            console.log('✅ 주문 생성 완료:', orderResponse);
+            const orderId = orderResponse.order_id;
+
+            // 2단계: Payment API로 결제 처리
+            console.log('💳 결제 처리 중...');
+            
+            // 카드 정보 준비 (카드 결제인 경우)
+            let cardData = null;
+            if (paymentMethod === 'card' || paymentMethod === 'credit_card') {
+                if (useNewCard) {
+                    // 새 카드 정보 사용
+                    cardData = {
+                        card_number: cardNumber.replace(/\s/g, ''),
+                        card_holder: cardHolder,
+                        expiry: expiry,
+                        cvv: cvv
+                    };
+                } else if (selectedCardId) {
+                    // 저장된 카드 사용 - CVV만 입력받음
+                    const selectedCard = savedCards.find(c => c.card_id === selectedCardId);
+                    if (!selectedCard) {
+                        throw new Error('선택한 카드를 찾을 수 없습니다');
+                    }
+                    
+                    if (!cvv) {
+                        throw new Error('CVV를 입력해주세요');
+                    }
+                    
+                    // 저장된 카드 정보 + CVV
+                    cardData = {
+                        card_number: '************' + selectedCard.last_four_digits, // 마지막 4자리만
+                        card_holder: selectedCard.card_holder,
+                        expiry: `${String(selectedCard.expiry_month).padStart(2, '0')}/${String(selectedCard.expiry_year).slice(-2)}`,
+                        cvv: cvv,
+                        saved_card_id: selectedCardId // 저장된 카드 ID 전달
+                    };
+                    
+                    console.log('💳 저장된 카드 사용:', {
+                        card_id: selectedCardId,
+                        last_four: selectedCard.last_four_digits,
+                        card_holder: selectedCard.card_holder,
+                        expiry: cardData.expiry
+                    });
+                }
+            }
+            
+            if (cardData) {
+                console.log('💳 카드 데이터 전송:', {
+                    card_number: cardData.card_number,
+                    card_holder: cardData.card_holder,
+                    expiry: cardData.expiry,
+                    has_cvv: !!cardData.cvv,
+                    saved_card_id: cardData.saved_card_id
+                });
+            }
+            
+            const paymentResponse = await API.processPayment(
+                orderId,
+                paymentMethod === 'card' ? 'credit_card' : paymentMethod,
+                cardData
+            );
+
+            console.log('✅ 결제 완료:', paymentResponse);
+
+            // 결제 성공
+            if (paymentResponse.success && paymentResponse.status === 'completed') {
+                setSuccess(true);
+                setPaymentResult({
+                    orderId: orderId,
+                    paymentId: paymentResponse.payment_id,
+                    transactionId: paymentResponse.transaction_id,
+                    amount: totalPrice
+                });
+
+                // 사용자 행동 트래킹
+                trackUserAction('payment_completed', {
+                    orderId: orderId,
+                    paymentId: paymentResponse.payment_id,
+                    amount: totalPrice,
+                    method: paymentMethod
+                });
+
+                // 3초 후 완료 처리
+                setTimeout(() => {
+                    onComplete();
+                }, 3000);
+            } else {
+                throw new Error(paymentResponse.message || '결제 처리에 실패했습니다');
+            }
+
+        } catch (error) {
+            console.error('❌ 결제 실패:', error);
+            setError(error.message || '결제 처리 중 오류가 발생했습니다');
+            
+            trackUserAction('payment_failed', {
+                error: error.message,
+                method: paymentMethod
+            });
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    // 결제 성공 화면
+    if (success && paymentResult) {
+        return (
+            <div className="modal">
+                <div className="modal-content">
+                    <div style={{ textAlign: 'center', padding: '2rem' }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+                        <h2 style={{ color: '#2ecc71', marginBottom: '1rem' }}>결제 완료!</h2>
+                        <p style={{ color: '#666', marginBottom: '2rem' }}>
+                            주문이 성공적으로 처리되었습니다
+                        </p>
+                        
+                        <div style={{ 
+                            background: '#f8f9fa', 
+                            padding: '1.5rem', 
+                            borderRadius: '10px',
+                            textAlign: 'left',
+                            marginBottom: '1.5rem'
+                        }}>
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <strong>주문 번호:</strong> {paymentResult.orderId}
+                            </div>
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <strong>결제 ID:</strong> {paymentResult.paymentId}
+                            </div>
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <strong>거래 ID:</strong> {paymentResult.transactionId}
+                            </div>
+                            <div>
+                                <strong>결제 금액:</strong> ₩{paymentResult.amount.toLocaleString()}
+                            </div>
+                        </div>
+
+                        <p style={{ fontSize: '0.9rem', color: '#999' }}>
+                            잠시 후 자동으로 닫힙니다...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 결제 진행 화면
+    return (
+        <div className="modal">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h2 className="modal-title">💳 결제하기</h2>
+                    <button className="close-btn" onClick={onClose} disabled={processing}>×</button>
+                </div>
+
+                {error && (
+                    <div className="alert alert-error">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={handlePayment}>
+                    {/* 주문 요약 */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ marginBottom: '1rem' }}>주문 요약</h3>
+                        {cart.map(item => (
+                            <div key={item.id} style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between',
+                                padding: '0.75rem 0',
+                                borderBottom: '1px solid #e9ecef'
+                            }}>
+                                <span>{item.name} x {item.quantity}</span>
+                                <span>₩{(item.price * item.quantity).toLocaleString()}</span>
+                            </div>
+                        ))}
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between',
+                            padding: '1rem 0',
+                            fontSize: '1.2rem',
+                            fontWeight: 'bold',
+                            color: '#667eea'
+                        }}>
+                            <span>총 결제 금액</span>
+                            <span>₩{totalPrice.toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    {/* 배송 정보 */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ marginBottom: '1rem' }}>배송 정보</h3>
+                        <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px' }}>
+                            <div style={{ marginBottom: '0.5rem' }}>
+                                <strong>받는 사람:</strong> {user.name}
+                            </div>
+                            <div style={{ marginBottom: '0.5rem' }}>
+                                <strong>연락처:</strong> {user.phone || '미등록'}
+                            </div>
+                            <div>
+                                <strong>배송지:</strong> {user.address || '미등록'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 결제 수단 선택 */}
+                    <div className="payment-section">
+                        <h3 style={{ marginBottom: '1rem' }}>결제 수단</h3>
+                        <div className="payment-method">
+                            <div 
+                                className={`payment-option ${paymentMethod === 'card' ? 'selected' : ''}`}
+                                onClick={() => setPaymentMethod('card')}
+                            >
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💳</div>
+                                <div>신용/체크카드</div>
+                            </div>
+                            <div 
+                                className={`payment-option ${paymentMethod === 'bank_transfer' ? 'selected' : ''}`}
+                                onClick={() => setPaymentMethod('bank_transfer')}
+                            >
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🏦</div>
+                                <div>계좌이체</div>
+                            </div>
+                            <div 
+                                className={`payment-option ${paymentMethod === 'mobile' ? 'selected' : ''}`}
+                                onClick={() => setPaymentMethod('mobile')}
+                            >
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📱</div>
+                                <div>모바일 결제</div>
+                            </div>
+                        </div>
+
+                        {/* 카드 정보 입력 (카드 결제 선택 시) */}
+                        {paymentMethod === 'card' && (
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <div style={{ 
+                                    background: '#e8f5e9', 
+                                    border: '2px solid #4caf50',
+                                    padding: '1rem', 
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    marginBottom: '1rem'
+                                }}>
+                                    <strong>🔒 보안 안내</strong><br/>
+                                    • 카드 정보는 암호화되어 전송됩니다<br/>
+                                    • 카드번호와 CVV는 저장되지 않습니다<br/>
+                                    • 결제 토큰만 안전하게 보관됩니다
+                                </div>
+
+                                {/* 저장된 카드 선택 */}
+                                {loadingCards ? (
+                                    <div style={{ textAlign: 'center', padding: '1rem' }}>
+                                        <p>카드 목록 로딩 중...</p>
+                                    </div>
+                                ) : savedCards.length > 0 ? (
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            marginBottom: '1rem'
+                                        }}>
+                                            <label className="form-label" style={{ marginBottom: 0 }}>
+                                                결제 카드 선택
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setUseNewCard(!useNewCard)}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    color: '#667eea',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.9rem',
+                                                    textDecoration: 'underline'
+                                                }}
+                                            >
+                                                {useNewCard ? '저장된 카드 사용' : '새 카드 사용'}
+                                            </button>
+                                        </div>
+
+                                        {!useNewCard && (
+                                            <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1rem' }}>
+                                                {savedCards.map(card => (
+                                                    <div
+                                                        key={card.card_id}
+                                                        onClick={() => setSelectedCardId(card.card_id)}
+                                                        style={{
+                                                            border: selectedCardId === card.card_id ? '2px solid #667eea' : '2px solid #e0e0e0',
+                                                            borderRadius: '8px',
+                                                            padding: '1rem',
+                                                            cursor: 'pointer',
+                                                            background: selectedCardId === card.card_id ? '#f0f4ff' : 'white',
+                                                            transition: 'all 0.3s'
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <div>
+                                                                <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                                                                    {card.card_type.toUpperCase()} **** {card.last_four_digits}
+                                                                </div>
+                                                                <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                                                                    {card.card_holder} | {String(card.expiry_month).padStart(2, '0')}/{card.expiry_year}
+                                                                </div>
+                                                            </div>
+                                                            {card.is_default && (
+                                                                <span style={{
+                                                                    background: '#2ecc71',
+                                                                    color: 'white',
+                                                                    padding: '0.25rem 0.5rem',
+                                                                    borderRadius: '4px',
+                                                                    fontSize: '0.75rem'
+                                                                }}>
+                                                                    기본
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* 저장된 카드 사용 시 CVV만 입력 */}
+                                        {!useNewCard && (
+                                            <div className="form-group">
+                                                <label className="form-label">CVV (보안코드)</label>
+                                                <input 
+                                                    type="password" 
+                                                    className="form-input"
+                                                    placeholder="123"
+                                                    value={cvv}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        if (value.length <= 4) {
+                                                            setCvv(value);
+                                                        }
+                                                    }}
+                                                    maxLength="4"
+                                                    required
+                                                    style={{ maxWidth: '150px' }}
+                                                />
+                                                <small style={{ display: 'block', marginTop: '0.5rem', color: '#666' }}>
+                                                    보안을 위해 CVV는 매번 입력해야 합니다
+                                                </small>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
+
+                                {/* 새 카드 입력 폼 */}
+                                {(useNewCard || savedCards.length === 0) && (
+                                    <>
+                                        <div className="form-group">
+                                            <label className="form-label">카드번호</label>
+                                            <input 
+                                                type="text" 
+                                                className="form-input"
+                                                placeholder="1234 5678 9012 3456"
+                                                value={cardNumber}
+                                                onChange={(e) => {
+                                                    let value = e.target.value.replace(/\s/g, '');
+                                                    let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                                                    if (formatted.length <= 19) {
+                                                        setCardNumber(formatted);
+                                                    }
+                                                }}
+                                                maxLength="19"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">카드 소유자 이름</label>
+                                            <input 
+                                                type="text" 
+                                                className="form-input"
+                                                placeholder="HONG GILDONG"
+                                                value={cardHolder}
+                                                onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="card-input-group">
+                                            <div className="form-group">
+                                                <label className="form-label">만료일</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-input"
+                                                    placeholder="MM/YY"
+                                                    value={expiry}
+                                                    onChange={(e) => {
+                                                        let value = e.target.value.replace(/\D/g, '');
+                                                        if (value.length >= 2) {
+                                                            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                                                        }
+                                                        if (value.length <= 5) {
+                                                            setExpiry(value);
+                                                        }
+                                                    }}
+                                                    maxLength="5"
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label className="form-label">CVV</label>
+                                                <input 
+                                                    type="password" 
+                                                    className="form-input"
+                                                    placeholder="123"
+                                                    value={cvv}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        if (value.length <= 4) {
+                                                            setCvv(value);
+                                                        }
+                                                    }}
+                                                    maxLength="4"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        <div style={{ 
+                            background: '#e7f3ff', 
+                            padding: '1rem', 
+                            borderRadius: '8px',
+                            fontSize: '0.9rem',
+                            color: '#004085',
+                            marginTop: '1rem'
+                        }}>
+                            <strong>💡 안전한 결제:</strong> 모든 결제는 암호화되어 안전하게 처리됩니다.
+                            중복 결제 방지 시스템이 적용되어 있습니다.
+                        </div>
+                    </div>
+
+                    {/* 결제 버튼 */}
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                        <button 
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={onClose}
+                            disabled={processing}
+                            style={{ flex: 1 }}
+                        >
+                            취소
+                        </button>
+                        <button 
+                            type="submit"
+                            className="btn btn-success"
+                            disabled={processing}
+                            style={{ flex: 2 }}
+                        >
+                            {processing ? '결제 처리 중...' : `₩${totalPrice.toLocaleString()} 결제하기`}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+
+        // 관리자 대시보드
+        function AdminDashboard({ user, onLogout }) {
+            const [activeMenu, setActiveMenu] = useState('dashboard');
+            const [products, setProducts] = useState([]);
+            const [orders, setOrders] = useState([]); 
+            const [users, setUsers] = useState([]);
+
+            // 데이터 로드
+            useEffect(() => {
+                const loadData = async () => {
+                    try {
+                        // 1. 상품 로드
+                        const prodData = await API.getProducts();
+                        setProducts(Array.isArray(prodData) ? prodData : []); // 안전장치
+
+                        // 2. 주문 로드 (DB 연동)
+                        const orderData = await API.getAllOrders();
+                        setOrders(Array.isArray(orderData) ? orderData : []); // 안전장치
+
+                        // 3. 유저 로드 (로컬 스토리지 Fallback)
+                        const userList = Storage.getUsers();
+                        setUsers(Array.isArray(userList) ? userList : []); // 안전장치
+
+                    } catch (error) {
+                        console.error("데이터 로드 실패:", error);
+                        // 에러나도 빈 배열로 초기화해서 화면 죽는 것 방지
+                        setProducts([]);
+                        setOrders([]);
+                        setUsers([]);
+                    }
+                };
+
+                loadData();
+            }, [activeMenu]); // 메뉴 바뀔 때마다 갱신
+
+            // 🔥 통계 계산 안전장치 (undefined 체크)
+            const safeOrders = Array.isArray(orders) ? orders : [];
+            const safeProducts = Array.isArray(products) ? products : [];
+            const safeUsers = Array.isArray(users) ? users : [];
+
+            const stats = {
+                totalOrders: safeOrders.length,
+                totalRevenue: safeOrders.reduce((sum, order) => sum + (parseInt(order.total_price) || 0), 0),
+                totalProducts: safeProducts.length,
+                totalUsers: safeUsers.length
+            };
+
+            return (
+                <React.Fragment>
+                    <header className="header">
+                        <div className="header-content">
+                            <div className="logo">
+                                🚀 메가팡 관리자
+                                <span style={{fontSize: '0.5em', background: '#ffd700', color: '#000', padding: '0.2rem 0.5rem', borderRadius: '5px', marginLeft: '0.5rem', fontWeight: 'bold'}}>
+                                    {user.role === 'super_admin' ? 'SUPER' : 'ADMIN'}
+                                </span>
+                            </div>
+                            <nav className="nav">
+                                <span style={{ opacity: 0.9 }}>👤 {user.name}님</span>
+                                <button className="nav-btn" onClick={onLogout}>로그아웃</button>
+                            </nav>
+                        </div>
+                    </header>
+
+                    <div className="container">
+                        <div className="admin-container">
+                            <div className="admin-sidebar">
+                                <div className={`admin-menu-item ${activeMenu === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveMenu('dashboard')}>📊 대시보드</div>
+                                <div className={`admin-menu-item ${activeMenu === 'products' ? 'active' : ''}`} onClick={() => setActiveMenu('products')}>📦 상품 관리</div>
+                                <div className={`admin-menu-item ${activeMenu === 'orders' ? 'active' : ''}`} onClick={() => setActiveMenu('orders')}>🛍️ 주문 관리</div>
+                                <div className={`admin-menu-item ${activeMenu === 'users' ? 'active' : ''}`} onClick={() => setActiveMenu('users')}>👥 회원 관리</div>
+                            </div>
+
+                            <div className="admin-content">
+                                {activeMenu === 'dashboard' && (
+                                    <DashboardView stats={stats} orders={safeOrders} />
+                                )}
+                                {activeMenu === 'products' && (
+                                    <ProductManagement 
+                                        products={safeProducts} 
+                                        setProducts={setProducts}
+                                        reloadProducts={async () => {
+                                            const data = await API.getProducts();
+                                            setProducts(data);
+                                        }}
+                                    />
+                                )}
+                                {activeMenu === 'orders' && (
+                                    <OrderManagement 
+                                        orders={safeOrders} 
+                                        setOrders={setOrders} 
+                                    />
+                                )}
+                                {activeMenu === 'users' && (
+                                    <UserManagement users={safeUsers} />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </React.Fragment>
+            );
+        }
+
+        // 대시보드 뷰
+        function DashboardView({ stats, orders }) {
+            // 🔥 안전장치: orders가 배열이 아니면 빈 배열로 취급
+            const safeOrders = Array.isArray(orders) ? orders : [];
+
+            return (
+                <React.Fragment>
+                    <div className="admin-header">
+                        <div className="admin-title">📊 대시보드</div>
+                    </div>
+
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.totalOrders}</div>
+                            <div className="stat-label">총 주문 수</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">₩{(stats.totalRevenue / 10000).toFixed(0)}만</div>
+                            <div className="stat-label">총 매출</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.totalProducts}</div>
+                            <div className="stat-label">등록 상품</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.totalUsers}</div>
+                            <div className="stat-label">가입 회원</div>
+                        </div>
+                    </div>
+
+                    <h3 style={{ marginBottom: '1rem' }}>최근 주문</h3>
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>주문 ID</th>
+                                <th>고객 ID</th>
+                                <th>상품 수</th>
+                                <th>금액</th>
+                                <th>상태</th>
+                                <th>주문일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {/* 🔥 안전장치: safeOrders 사용 */}
+                            {safeOrders.length === 0 ? (
+                                <tr><td colSpan="6" style={{textAlign:'center'}}>주문 내역이 없습니다.</td></tr>
+                            ) : (
+                                safeOrders.slice(0, 5).map(order => (
+                                    <tr key={order.id}>
+                                        <td>{order.id}</td>
+                                        <td>{order.user_id}</td>
+                                        <td>{order.items ? order.items.length : '-'}개</td> {/* items 체크 추가 */}
+                                        <td>₩{parseInt(order.total_price || 0).toLocaleString()}</td>
+                                        <td>
+                                            <span className={`status-badge status-${order.status === 'paid' ? 'completed' : order.status}`}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td>{order.created_at ? new Date(order.created_at).toLocaleDateString() : '-'}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </React.Fragment>
+            );
+        }
+
+        // 상품 관리
+        function ProductManagement({ products, setProducts, reloadProducts }) {
+             const [editProduct, setEditProduct] = useState(null);
+             const [showAddForm, setShowAddForm] = useState(false);
+
+         const fetchProducts = async () => {
+    if (reloadProducts) {
+        await reloadProducts();
+    } else {
+        // Fallback: 직접 API 호출
+        const res = await fetch(`${API_BASE_URL}/products`);
+        const data = await res.json();
+        setProducts(data.products || data || []);  // ✅ 이렇게 수정!
+    }
+};
+
+    const handleDelete = async (id) => {
+        if (!confirm("정말 삭제하시겠습니까?")) return;
+
+        try {
+            console.log(`🗑️ 상품 삭제 중... ID: ${id}`);
+            const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+                method: "DELETE",
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                console.log('✅ 삭제 성공!');
+                alert("삭제되었습니다!");
+                await fetchProducts(); // ✅ 삭제 후 목록 새로고침
+            } else {
+                console.error('❌ 삭제 실패:', data);
+                alert("삭제 실패");
+            }
+        } catch (error) {
+            console.error('❌ 삭제 요청 실패:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    };
+
+
+    // 상품 수정
+    const handleSave = async (product) => {
+        try {
+            console.log('📝 상품 수정 중...', product);
+            
+            const formData = new FormData();
+            formData.append("name", product.name);
+            formData.append("description", product.description);
+            formData.append("category", product.category);
+            formData.append("price", product.price);
+            formData.append("stock", product.stock);
+
+            if (product.file) {
+                formData.append("image", product.file);
+            }
+
+            const res = await fetch(`${API_BASE_URL}/products/${product.id}`, {
+                method: "PUT",
+                body: formData,
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                console.log('✅ 수정 성공!');
+                alert("수정되었습니다!");
+                setEditProduct(null);
+                await fetchProducts(); // ✅ 수정 후 목록 새로고침
+            } else {
+                console.error('❌ 수정 실패:', data);
+                alert("수정 실패");
+            }
+        } catch (error) {
+            console.error('❌ 수정 요청 실패:', error);
+            alert('수정 중 오류가 발생했습니다.');
+        }
+    };
+
+
+    // 상품 추가
+    const handleAdd = async (product) => {
+        try {
+            console.log('➕ 상품 추가 중...', product);
+            
+            const formData = new FormData();
+            formData.append("name", product.name);
+            formData.append("description", product.description);
+            formData.append("category", product.category);
+            formData.append("price", product.price);
+            formData.append("stock", product.stock);
+
+            if (product.file) {
+                console.log('📷 이미지 포함:', product.file.name);
+                formData.append("image", product.file);
+            }
+
+            console.log('📤 API 요청 전송:', `${API_BASE_URL}/products`);
+            const res = await fetch(`${API_BASE_URL}/products`, {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json();
+            console.log('📥 API 응답:', data);
+
+            if (data.success) {
+                console.log('✅ 추가 성공!');
+                alert("상품이 추가되었습니다!");
+                setShowAddForm(false);
+                await fetchProducts(); // ✅ 추가 후 목록 새로고침
+            } else {
+                console.error('❌ 추가 실패:', data);
+                alert("추가 실패: " + (data.message || '알 수 없는 오류'));
+            }
+        } catch (error) {
+            console.error('❌ 추가 요청 실패:', error);
+            alert('추가 중 오류가 발생했습니다: ' + error.message);
+        }
+    };
+
+
+    return (
+        <>
+            <div className="admin-header">
+                <div className="admin-title">📦 상품 관리</div>
+                <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
+                    + 상품 추가
+                </button>
+            </div>
+
+            <table className="table">
+                <thead>
+                    <tr>
+                        <th>사진</th>
+                        <th>상품명</th>
+                        <th>카테고리</th>
+                        <th>가격</th>
+                        <th>재고</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {products.map(product => (
+                        <tr key={product.id}>
+                            
+                            {/* ⬇⬇⬇ 이미지 표시 부분 (완성본) */}
+                            <td>
+                                {product.image_url ? (
+                                    <img
+                                        src={product.image_url}
+                                        style={{
+                                            width: "50px",
+                                            height: "50px",
+                                            objectFit: "cover",
+                                            borderRadius: "6px"
+                                        }}
+                                    />
+                                ) : (
+                                    <span style={{ fontSize: "2rem" }}>📦</span>
+                                )}
+                            </td>
+                            {/* ⬆⬆⬆ */}
+
+                            <td>{product.name}</td>
+                            <td>{product.category}</td>
+                            <td>₩{product.price.toLocaleString()}</td>
+                            <td>{product.stock}</td>
+
+                            <td>
+                                <button
+                                    className="action-btn btn-edit"
+                                    onClick={() => setEditProduct(product)}
+                                >
+                                    수정
+                                </button>
+                                <button
+                                    className="action-btn btn-delete"
+                                    onClick={() => handleDelete(product.id)}
+                                >
+                                    삭제
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            {(editProduct || showAddForm) && (
+                <ProductEditModal
+                    product={editProduct}
+                    onSave={editProduct ? handleSave : handleAdd}
+                    onClose={() => {
+                        setEditProduct(null);
+                        setShowAddForm(false);
+                    }}
+                />
+            )}
+        </>
+    );
+}
+
+
+
+
+// ⬇⬇⬇ 상품 추가/수정 모달 전체 완성본
+function ProductEditModal({ product, onSave, onClose }) {
+    const [formData, setFormData] = useState(product || {
+        name: "",
+        description: "",
+        price: 0,
+        stock: 0,
+        category: "",
+        file: null,
+        image_url: ""
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave({
+            ...formData,
+            price: parseInt(formData.price),
+            stock: parseInt(formData.stock)
+        });
+    };
+
+    return (
+        <div className="modal" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <div className="modal-title">
+                        {product ? "상품 수정" : "상품 추가"}
+                    </div>
+                    <button className="close-btn" onClick={onClose}>✕</button>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+
+                    {/* 이미지 업로드 필드 */}
+                    <div className="form-group">
+                        <label className="form-label">상품 이미지</label>
+                        {/* 기존이미지*/}
+                        {formData.image_url && (
+                            <img
+                                src={formData.image_url}
+                                style={{
+                                    width: "80px",
+                                    borderRadius: "8px",
+                                    marginBottom: "8px"
+                                }}
+                            />
+                        )}
+
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) =>
+                                setFormData({ ...formData, file: e.target.files[0] })
+                            }
+                            className="form-input"
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">상품명</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={formData.name}
+                            onChange={(e) =>
+                                setFormData({ ...formData, name: e.target.value })
+                            }
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">설명</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={formData.description}
+                            onChange={(e) =>
+                                setFormData({ ...formData, description: e.target.value })
+                            }
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">카테고리</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={formData.category}
+                            onChange={(e) =>
+                                setFormData({ ...formData, category: e.target.value })
+                            }
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">가격</label>
+                        <input
+                            type="number"
+                            className="form-input"
+                            value={formData.price}
+                            onChange={(e) =>
+                                setFormData({ ...formData, price: e.target.value })
+                            }
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">재고</label>
+                        <input
+                            type="number"
+                            className="form-input"
+                            value={formData.stock}
+                            onChange={(e) =>
+                                setFormData({ ...formData, stock: e.target.value })
+                            }
+                            required
+                        />
+                    </div>
+
+                    <button type="submit" className="btn btn-primary">
+                        {product ? "수정 완료" : "추가 완료"}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+        // 주문 관리
+        function OrderManagement({ orders, setOrders }) {
+            
+            // 주문 상태 변경 핸들러
+            const handleStatusUpdate = async (orderId, newStatus) => {
+        if(!confirm(`주문 상태를 '${newStatus}'(으)로 변경하시겠습니까?`)) return;
+                
+                try {
+            const res = await API.updateOrderStatus(orderId, newStatus);
+            if(res.success) {
+                alert("상태가 변경되었습니다.");
+                // 화면 즉시 반영 (API 재호출 없이 로컬 상태 업데이트)
+                const updatedOrders = orders.map(order => 
+                    order.id === orderId ? { ...order, status: newStatus } : order
+                );
+                setOrders(updatedOrders);
+            } else {
+                alert("변경 실패");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("오류 발생");
+        }
+    };
+            const statusOptions = [
+        { value: 'paid', label: '결제완료' },
+        { value: 'preparing', label: '상품준비중' },
+        { value: 'shipping', label: '배송중' },
+        { value: 'delivered', label: '배송완료' },
+        { value: 'cancelled', label: '취소됨' }
+    ];
+            return (
+        <>
+            <div className="admin-header">
+                <div className="admin-title">🛍️ 주문 관리</div>
+            </div>
+
+            <table className="table">
+                <thead>
+                    <tr>
+                        <th>주문 ID</th>
+                        <th>고객 ID</th>
+                        <th>금액</th>
+                        <th>현재 상태</th>
+                        <th>상태 변경</th>
+                        <th>주문일</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {orders.map(order => (
+                        <tr key={order.id}>
+                            <td>{order.id}</td>
+                            <td>{order.user_id}</td>
+                            <td>₩{parseInt(order.total_price).toLocaleString()}</td>
+                            <td>
+                                <span className={`status-badge status-${order.status === 'paid' ? 'completed' : order.status}`}>
+                                    {order.status}
+                                </span>
+                            </td>
+                            <td>
+                                <select 
+                                    value={order.status} 
+                                    onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                                    style={{ padding: '5px', borderRadius: '4px' }}
+                                >
+                                    {statusOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </td>
+                            <td>{new Date(order.created_at || order.createdAt).toLocaleString()}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </>
+    );
+}
+
+        // 회원 관리
+        function UserManagement({ users }) {
+            return (
+                <>
+                    <div className="admin-header">
+                        <div className="admin-title">👥 회원 관리</div>
+                    </div>
+
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>이름</th>
+                                <th>이메일</th>
+                                <th>전화번호</th>
+                                <th>권한</th>
+                                <th>가입일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map(user => (
+                                <tr key={user.id}>
+                                    <td>{user.id}</td>
+                                    <td>{user.name}</td>
+                                    <td>{user.email}</td>
+                                    <td>{user.phone || '-'}</td>
+                                    <td>
+                                        <span className={`status-badge ${
+                                            user.role === 'super_admin' ? 'status-success' : 
+                                            user.role === 'admin' ? 'status-completed' : 
+                                            'status-pending'
+                                        }`}>
+                                            {user.role === 'super_admin' ? '🌟 최고 관리자' : 
+                                             user.role === 'admin' ? '관리자' : 
+                                             '일반'}
+                                        </span>
+                                    </td>
+                                    <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            );
+        }
+
+        // 메인 앱
+        function App() {
+            const [currentPage, setCurrentPage] = useState('login');
+            const [currentUser, setCurrentUser] = useState(null);
+
+            useEffect(() => {
+                // 세션 체크
+                const savedUser = sessionStorage.getItem('megapang_user');
+                if (savedUser) {
+                    const user = JSON.parse(savedUser);
+                    setCurrentUser(user);
+                    // admin 또는 super_admin이면 관리자 페이지로 이동
+                    setCurrentPage((user.role === 'admin' || user.role === 'super_admin') ? 'admin' : 'shop');
+                }
+            }, []);
+
+            const handleLogin = (user) => {
+                console.log('🔐 로그인 처리:', { 
+                    이름: user.name, 
+                    이메일: user.email, 
+                    권한: user.role 
+                });
+                
+                setCurrentUser(user);
+                sessionStorage.setItem('megapang_user', JSON.stringify(user));
+                
+                // admin 또는 super_admin이면 관리자 페이지로, 그 외에는 쇼핑몰로
+                if (user.role === 'admin' || user.role === 'super_admin') {
+                    console.log('✅ 관리자 페이지로 이동');
+                    setCurrentPage('admin');
+                } else {
+                    console.log('✅ 일반 사용자 페이지로 이동');
+                    setCurrentPage('shop');
+                }
+            };
+
+            const handleRegister = (user) => {
+                setCurrentPage('login');
+            };
+
+            const handleLogout = () => {
+                setCurrentUser(null);
+                sessionStorage.removeItem('megapang_user');
+                TokenManager.removeToken(); // JWT 토큰 제거
+                setCurrentPage('login');
+                trackUserAction('logout', { userId: currentUser?.id });
+            };
+
+            if (currentPage === 'login') {
+                return <LoginPage onLogin={handleLogin} onSwitchToRegister={() => setCurrentPage('register')} />;
+            }
+
+            if (currentPage === 'register') {
+                return <RegisterPage onRegister={handleRegister} onSwitchToLogin={() => setCurrentPage('login')} />;
+            }
+
+            if (currentPage === 'shop') {
+                return <ProductList user={currentUser} onLogout={handleLogout} />;
+            }
+
+            if (currentPage === 'admin') {
+                return <AdminDashboard user={currentUser} onLogout={handleLogout} />;
+            }
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
