@@ -1,0 +1,20 @@
+{
+  "name": "lex-api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "app.js",
+  "scripts": { 
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-lex-runtime-v2": "^3.693.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "mysql2": "^3.15.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

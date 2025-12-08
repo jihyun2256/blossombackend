@@ -1,0 +1,115 @@
+name: Build and Push All Backend Services to ECR
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "**"
+      - ".github/workflows/**"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: ap-northeast-2
+      ECR_REGISTRY: 337112169365.dkr.ecr.ap-northeast-2.amazonaws.com
+
+      # 폴더명 → ECR repo 이름 (lex-api 포함)
+      SERVICES: |
+        user-api blossom-user-api
+        product-api blossom-product-api
+        order-api blossom-order-api
+        cart-api blossom-cart-api
+        payment blossom-payments-api
+        lex-api blossom-lex-api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # =============================================
+      # 서비스별 Docker build → tag → ECR push 반복
+      # =============================================
+      - name: Build & Push all microservices images
+        run: |
+          while read folder repo; do
+            echo "========================================"
+            echo "Building service: $folder → Repo: $repo"
+            echo "========================================"
+
+            # 서비스 폴더 존재 여부 확인
+            if [ ! -d "./$folder" ]; then
+              echo "❌ Folder not found: $folder — skipping"
+              continue
+            fi
+
+            IMAGE_TAG="${ECR_REGISTRY}/${repo}:${GITHUB_SHA}"
+
+            # Build
+            docker build -t ${repo}:${GITHUB_SHA} "./${folder}"
+
+            # Tag
+            docker tag ${repo}:${GITHUB_SHA} ${IMAGE_TAG}
+
+            # Push
+            docker push ${IMAGE_TAG}
+
+            echo "✔ Successfully pushed: ${IMAGE_TAG}"
+            echo
+          done <<< "$SERVICES"
+
+      - name: Update image tag in manifests repository
+        run: |
+          echo "=== Cloning manifests repo (B repo) ==="
+          git clone https://github.com/jihyun2256/blossommanifest.git manifests
+          cd manifests
+
+          # 서비스별 매핑 (A repo에서 사용한 SERVICES 배열과 동일하게 사용)
+          while read folder repo; do
+            echo "-------------------------------------------"
+            echo "Updating manifest for service: $folder ($repo)"
+            echo "-------------------------------------------"
+
+            # B repo 파일 이름 규칙: <서비스명>-api.yaml
+            # payment 폴더 → payments-api.yaml (예외 처리)
+            if [ "$folder" = "payment" ]; then
+              YAML_FILE="payments-api.yaml"
+            else
+              YAML_FILE="${folder}.yaml"
+            fi
+
+            if [ ! -f "$YAML_FILE" ]; then
+              echo "❌ Manifest file not found: $YAML_FILE — skipping"
+              continue
+            fi
+
+            NEW_IMAGE="${ECR_REGISTRY}/${repo}:${GITHUB_SHA}"
+
+            echo "✔ New image tag: $NEW_IMAGE"
+            echo "✔ Updating file: $YAML_FILE"
+
+            # YAML 내부 image: 값 업데이트
+            sed -i "s|image: .*|image: ${NEW_IMAGE}|g" "$YAML_FILE"
+
+          done <<< "$SERVICES"
+
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+          git add .
+          git commit -m "Update image tags to ${GITHUB_SHA}"
+          git push
+
+
+
