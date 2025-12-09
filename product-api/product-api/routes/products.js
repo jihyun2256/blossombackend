@@ -5,8 +5,8 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
-const s3 = new S3Client({ region: process.env.AWS_REGION || "ap-northeast-2" });
-const S3_BUCKET = process.env.S3_BUCKET || "test1bipa-g3-u3";
+const s3 = new S3Client({ region: "ap-northeast-2" });
+const S3_BUCKET = "sb3-u4-eks-test";
 const S3_FOLDER = "images";
 
 router.get('/', async (req, res) => {
@@ -42,7 +42,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       const key = `${S3_FOLDER}/${timestamp}-${safeFileName}`;
       const command = new PutObjectCommand({ Bucket: S3_BUCKET, Key: key, Body: req.file.buffer, ContentType: req.file.mimetype });
       await s3.send(command);
-      imageUrl = `https://${S3_BUCKET}.s3.${process.env.AWS_REGION || 'ap-northeast-2'}.amazonaws.com/${key}`;
+      imageUrl = `https://${S3_BUCKET}.s3.${'ap-northeast-2'}.amazonaws.com/${key}`;
     }
     const [result] = await db.query(`INSERT INTO products (name, description, category, price, stock, image_url) VALUES (?, ?, ?, ?, ?, ?)`, [name, description || '', category || '기타', parseFloat(price), parseInt(stock) || 0, imageUrl]);
     return res.status(201).json({ success: true, message: 'PRODUCT_CREATED', product_id: result.insertId, image_url: imageUrl });
@@ -65,7 +65,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       const key = `${S3_FOLDER}/${timestamp}-${safeFileName}`;
       const command = new PutObjectCommand({ Bucket: S3_BUCKET, Key: key, Body: req.file.buffer, ContentType: req.file.mimetype });
       await s3.send(command);
-      imageUrl = `https://${S3_BUCKET}.s3.${process.env.AWS_REGION || 'ap-northeast-2'}.amazonaws.com/${key}`;
+      imageUrl = `https://${S3_BUCKET}.s3.${'ap-northeast-2'}.amazonaws.com/${key}`;
     }
     await db.query(`UPDATE products SET name = ?, description = ?, category = ?, price = ?, stock = ?, image_url = ?, updated_at = NOW() WHERE id = ?`, [name || existing[0].name, description || existing[0].description, category || existing[0].category, parseFloat(price) || existing[0].price, parseInt(stock) || existing[0].stock, imageUrl, id]);
     return res.json({ success: true, message: 'PRODUCT_UPDATED', image_url: imageUrl });
