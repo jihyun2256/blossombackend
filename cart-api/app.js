@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import cartRouter from './routes/cart.js';
+import cartRouter from './routes/carts.js';
 import { initRedis } from './config/redis.js';
 
 dotenv.config();
@@ -27,7 +27,8 @@ app.use(express.json());
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.get('/readiness', (req, res) => res.json({ ready: true }));
 
-app.use('/cart', cartRouter);
+// 복수형 REST 경로로 통일: /carts
+app.use('/carts', cartRouter);
 
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
