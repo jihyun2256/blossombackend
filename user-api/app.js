@@ -2,10 +2,14 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import usersRouter from './routes/users.js';
+import { initRedis } from './config/redis.js';
 
 dotenv.config();
 
 const app = express();
+
+// Redis 초기화 (비동기, 실패해도 앱은 계속 동작)
+initRedis();
 
 // 1️⃣ CORS 미들웨어 (기본 허용)
 app.use(cors({

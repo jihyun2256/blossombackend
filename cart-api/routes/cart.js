@@ -1,5 +1,6 @@
 import express from "express";
 import { db } from "../../shared/db.js";
+import redis from "../config/redis.js";
 
 const router = express.Router();
 
@@ -16,6 +17,12 @@ router.post('/', async (req, res) => {
       'INSERT INTO cart (user_id, product_id, product_name, price, quantity) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity + ?, updated_at = NOW()',
       [user_id, product_id, product_name, price, quantity, quantity]
     );
+    // 장바구니 변경 시 캐시 무효화
+    try {
+      await redis.del(`cart:${user_id}`);
+    } catch (redisErr) {
+      console.error('Redis error on cart invalidate:', redisErr);
+    }
 
     return res.json({ success: true, message: 'ITEM_ADDED_TO_CART' });
   } catch (err) {
@@ -28,13 +35,29 @@ router.post('/', async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
-    
+    const cacheKey = `cart:${userId}`;
+
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return res.json({ success: true, items: JSON.parse(cached), source: 'cache' });
+      }
+    } catch (redisErr) {
+      console.error('Redis error on cart get cache:', redisErr);
+    }
+
     const [rows] = await db.query(
       'SELECT * FROM cart WHERE user_id = ? ORDER BY created_at DESC',
       [userId]
     );
 
-    return res.json({ success: true, items: rows || [] });
+    try {
+      await redis.set(cacheKey, JSON.stringify(rows || []), { EX: 300 }); // 5분 캐시
+    } catch (redisErr) {
+      console.error('Redis error on cart set cache:', redisErr);
+    }
+
+    return res.json({ success: true, items: rows || [], source: 'db' });
   } catch (err) {
     console.error('GET CART ERROR:', err);
     return res.status(500).json({ success: false, message: 'SERVER_ERROR', error: err.message });
@@ -60,6 +83,13 @@ router.put('/:userId/:productId', async (req, res) => {
       return res.status(404).json({ success: false, message: 'CART_ITEM_NOT_FOUND' });
     }
 
+    // 장바구니 캐시 무효화
+    try {
+      await redis.del(`cart:${userId}`);
+    } catch (redisErr) {
+      console.error('Redis error on cart invalidate:', redisErr);
+    }
+
     return res.json({ success: true, message: 'QUANTITY_UPDATED' });
   } catch (err) {
     console.error('UPDATE CART ERROR:', err);
@@ -81,6 +111,13 @@ router.delete('/:userId/:productId', async (req, res) => {
       return res.status(404).json({ success: false, message: 'CART_ITEM_NOT_FOUND' });
     }
 
+    // 장바구니 캐시 무효화
+    try {
+      await redis.del(`cart:${userId}`);
+    } catch (redisErr) {
+      console.error('Redis error on cart invalidate:', redisErr);
+    }
+
     return res.json({ success: true, message: 'ITEM_REMOVED_FROM_CART' });
   } catch (err) {
     console.error('DELETE CART ITEM ERROR:', err);
@@ -97,6 +134,13 @@ router.delete('/user/:userId/clear', async (req, res) => {
       'DELETE FROM cart WHERE user_id = ?',
       [userId]
     );
+
+    // 장바구니 캐시 무효화
+    try {
+      await redis.del(`cart:${userId}`);
+    } catch (redisErr) {
+      console.error('Redis error on cart invalidate:', redisErr);
+    }
 
     return res.json({ success: true, message: 'CART_CLEARED', deleted_count: result.affectedRows });
   } catch (err) {

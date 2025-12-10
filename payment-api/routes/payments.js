@@ -12,6 +12,7 @@ import { validatePaymentRequest, validateCancellationRequest } from '../middlewa
 import { checkIdempotency, storeIdempotencyResponse } from '../middleware/idempotency.js';
 import { logInfo, logError, maskSensitiveData } from '../utils/logger.js';
 import { processCardPayment } from '../services/cardService.js';
+import redis from '../config/redis.js';
 
 // Order API URL
 const ORDER_API_URL = process.env.ORDER_API_URL || 'http://order-service';
@@ -88,7 +89,24 @@ router.post('/', validatePaymentRequest, checkIdempotency, async (req, res) => {
       cardData = null;
     }
 
-    // 결제 생성 및 처리
+    // 결제 생성 및 처리 (Redis 기반 분산 락 예시)
+    const lockKey = `payment_lock:${order_id}`;
+    let hasLock = false;
+    try {
+      // 간단한 분산 락 구현: NX + EX 사용 (동일 주문 중복 결제 방지)
+      hasLock = await redis.set(lockKey, 'locked', { NX: true, EX: 30 });
+      if (!hasLock) {
+        return res.status(429).json({
+          success: false,
+          message: 'Payment is already being processed for this order',
+          error_code: 'PAYMENT_IN_PROGRESS'
+        });
+      }
+    } catch (redisErr) {
+      console.error('Redis error on acquiring payment lock:', redisErr);
+      // Redis 장애 시에도 결제는 계속 진행 (락 없이)
+    }
+
     const result = await createPayment(
       order_id,
       order.user_id,
@@ -138,6 +156,27 @@ router.post('/', validatePaymentRequest, checkIdempotency, async (req, res) => {
     // 응답 전송
     const statusCode = result.status === 'completed' ? 200 : 422;
     res.status(statusCode).json(responseData);
+
+    // 임시 결제 상태 Redis에 저장 (예시)
+    try {
+      const tempKey = `payment_status:${result.paymentId}`;
+      await redis.set(tempKey, JSON.stringify({
+        status: result.status,
+        order_id,
+        user_id: order.user_id
+      }), { EX: 60 * 10 }); // 10분 TTL
+    } catch (redisErr) {
+      console.error('Redis error on storing temporary payment status:', redisErr);
+    }
+
+    // 락 해제
+    try {
+      if (hasLock) {
+        await redis.del(lockKey);
+      }
+    } catch (redisErr) {
+      console.error('Redis error on releasing payment lock:', redisErr);
+    }
 
   } catch (error) {
     // 에러 처리 및 민감정보 마스킹

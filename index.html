@@ -920,211 +920,145 @@
                 grid-template-columns: 1fr;
             }
         }
-    </style>
-    
-    <!-- 
-    ============================================
-    ⚠️  중요: API Gateway URL을 아래에 입력하세요!
-    ============================================
-    예시: https://abc123def.execute-api.ap-northeast-2.amazonaws.com/prod
-    -->
-    <script>
-        // 🔥 여기에 당신의 API Gateway URL을 입력하세요!
-        const API_BASE_URL = "http://k8s-default-blossomi-4e48a0f127-1297707261.ap-northeast-2.elb.amazonaws.com";
-        
-        // 예시:
-        // const API_BASE_URL = "https://j8h3l8cpb0.execute-api.ap-northeast-2.amazonaws.com/prod";
-    </script>
 
-    <!-- ==========================================
-         🤖 챗봇 CSS 스타일
-         ========================================== -->
-    <style>
+        /* ==========================================
+           🤖 챗봇 스타일
+           ========================================== */
+        
         /* 챗봇 토글 버튼 */
         .chatbot-toggle {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 20px;
+            right: 20px;
             width: 60px;
             height: 60px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
+            font-size: 2rem;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            transition: transform 0.3s, box-shadow 0.3s;
-            z-index: 9998;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            z-index: 998;
+            transition: transform 0.3s;
         }
 
         .chatbot-toggle:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
-        }
-
-        .chatbot-toggle:active {
-            transform: scale(0.95);
         }
 
         /* 챗봇 위젯 */
         .chatbot-widget {
             position: fixed;
-            bottom: 100px;
-            right: 30px;
+            bottom: 90px;
+            right: 20px;
             width: 380px;
             height: 600px;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            display: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
             flex-direction: column;
-            z-index: 9999;
-            animation: slideUp 0.3s ease-out;
+            z-index: 999;
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
         .chatbot-widget.active {
-            display: flex;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
         }
 
         /* 챗봇 헤더 */
         .chatbot-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
-            border-radius: 20px 20px 0 0;
+            padding: 1rem;
+            border-radius: 15px 15px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .chatbot-header h3 {
             margin: 0;
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 1rem;
         }
 
         .chatbot-close {
             background: none;
             border: none;
             color: white;
-            font-size: 24px;
+            font-size: 1.5rem;
             cursor: pointer;
             padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background 0.3s;
         }
 
-        .chatbot-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* 챗봇 메시지 영역 */
+        /* 메시지 영역 */
         .chatbot-messages {
             flex: 1;
-            padding: 20px;
             overflow-y: auto;
-            background: #f9f9f9;
-        }
-
-        .chatbot-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chatbot-messages::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 3px;
-        }
-
-        /* 메시지 */
-        .message {
-            margin-bottom: 15px;
+            padding: 1rem;
             display: flex;
-            animation: fadeIn 0.3s ease-out;
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.bot {
-            justify-content: flex-start;
+        .message {
+            display: flex;
+            margin-bottom: 0.5rem;
         }
 
         .message.user {
             justify-content: flex-end;
         }
 
-        .message-bubble {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            line-height: 1.5;
+        .message.bot {
+            justify-content: flex-start;
         }
 
-        .message.bot .message-bubble {
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        .message-bubble {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 15px;
+            word-wrap: break-word;
+            line-height: 1.4;
         }
 
         .message.user .message-bubble {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-bottom-right-radius: 4px;
+            border-radius: 15px 5px 15px 15px;
+        }
+
+        .message.bot .message-bubble {
+            background: #f0f0f0;
+            color: #333;
+            border-radius: 5px 15px 15px 15px;
         }
 
         /* 타이핑 인디케이터 */
         .typing-indicator {
-            display: none;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 18px;
-            border-bottom-left-radius: 4px;
-            width: fit-content;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 4px;
+            padding: 0.75rem 1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .typing-indicator.active {
-            display: block;
+            opacity: 1;
         }
 
         .typing-indicator span {
-            display: inline-block;
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #667eea;
-            margin: 0 2px;
-            animation: bounce 1.4s infinite;
+            background: #999;
+            animation: typing 1.4s infinite;
         }
 
         .typing-indicator span:nth-child(2) {
@@ -1135,60 +1069,59 @@
             animation-delay: 0.4s;
         }
 
-        @keyframes bounce {
+        @keyframes typing {
             0%, 60%, 100% {
+                opacity: 0.5;
                 transform: translateY(0);
             }
             30% {
+                opacity: 1;
                 transform: translateY(-10px);
             }
         }
 
         /* 빠른 응답 버튼 */
         .quick-replies {
-            padding: 15px 20px;
-            background: white;
-            border-top: 1px solid #eee;
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            flex-shrink: 0;
         }
 
         .quick-reply-btn {
-            padding: 8px 16px;
+            padding: 0.75rem;
             background: #f0f0f0;
             border: 1px solid #ddd;
-            border-radius: 20px;
-            font-size: 13px;
+            border-radius: 8px;
             cursor: pointer;
+            font-size: 0.9rem;
             transition: all 0.3s;
         }
 
         .quick-reply-btn:hover {
-            background: #667eea;
-            color: white;
+            background: #e0e0e0;
             border-color: #667eea;
         }
 
-        /* 챗봇 입력 영역 */
+        /* 입력 영역 */
         .chatbot-input-area {
-            padding: 20px;
-            background: white;
-            border-radius: 0 0 20px 20px;
-            border-top: 1px solid #eee;
+            padding: 1rem;
+            border-top: 1px solid #e0e0e0;
+            flex-shrink: 0;
         }
 
         .chatbot-input-wrapper {
             display: flex;
-            gap: 10px;
+            gap: 0.5rem;
         }
 
         .chatbot-input {
             flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #eee;
-            border-radius: 25px;
-            font-size: 14px;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
             outline: none;
             transition: border-color 0.3s;
         }
@@ -1198,49 +1131,44 @@
         }
 
         .chatbot-send {
-            padding: 12px 20px;
+            padding: 0.75rem 1.5rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
             font-weight: 600;
             transition: transform 0.2s;
         }
 
         .chatbot-send:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
         }
 
         .chatbot-send:active {
-            transform: scale(0.95);
+            transform: translateY(0);
         }
 
         /* 반응형 */
-        @media (max-width: 768px) {
+        @media (max-width: 480px) {
             .chatbot-widget {
-                width: 100%;
-                height: 100%;
-                bottom: 0;
-                right: 0;
-                border-radius: 0;
-            }
-
-            .chatbot-header {
-                border-radius: 0;
-            }
-
-            .chatbot-input-area {
-                border-radius: 0;
-            }
-
-            .chatbot-toggle {
-                bottom: 20px;
+                width: calc(100% - 40px);
+                height: 500px;
+                bottom: 80px;
                 right: 20px;
             }
         }
     </style>
+    
+   
+    <script>
+        // ============================================
+        // 🔥 API 엔드포인트 설정
+        // ============================================
+        // 환경에 따라 자동으로 API URL 설정
+        const API_URLS = 'http://www.bipa-g3-ec.click';
+        
+    </script>
 
 </head>
 <body>
@@ -1249,8 +1177,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-       
-       
         // 사용자 행동 트래킹
         const trackUserAction = (action, data) => {
             const event = {
@@ -1263,53 +1189,99 @@
             if (!sessionStorage.getItem('sessionId')) {
                 sessionStorage.setItem('sessionId', event.sessionId);
             }
-            
-            console.log('📊 User Action Tracked:', event);
         };
-
 
         // ============================================
         // 🔥 API 헬퍼 함수
         // ============================================
+        
+        // JWT 토큰 관리
+        const TokenManager = {
+            setToken: (token) => {
+                localStorage.setItem('jwt_token', token);
+            },
+            getToken: () => {
+                return localStorage.getItem('jwt_token');
+            },
+            removeToken: () => {
+                localStorage.removeItem('jwt_token');
+            },
+            getAuthHeaders: () => {
+                const token = TokenManager.getToken();
+                return token ? {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                } : {
+                    'Content-Type': 'application/json'
+                };
+            }
+        };
+
         const API = {
             // 사용자 API
             login: async (email, password) => {
-        const response = await fetch(`${API_BASE_URL}/users/login`, {
+        const response = await fetch(`${API_URLS}/users/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
         if (!response.ok) throw new Error('로그인 실패');
         const result = await response.json();
-        if (result.success && result.user) return { message: "Login successful", user: result.user };
+        
+        // JWT 토큰 저장
+        if (result.success && result.token) {
+            TokenManager.setToken(result.token);
+        }
+        
+        if (result.success && result.user) return { message: "Login successful", user: result.user, token: result.token };
         return result;
     },
 
     register: async (userData) => {
-        const response = await fetch(`${API_BASE_URL}/users/register`, {
+		const url = `${API_URLS}/users/register`;
+
+    try {
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData)
         });
-        if (!response.ok) throw new Error('회원가입 실패');
-        return await response.json();
+
+        if (!response.ok) {
+            throw new Error('회원가입 실패');
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (err) {
+        throw err;
+    }
+	
+      //  const response = await fetch(`${API_URLS.users}/register`, {
+     //       method: 'POST',
+     //       headers: { 'Content-Type': 'application/json' },
+     //       body: JSON.stringify(userData)
+     //   });
+     //   if (!response.ok) throw new Error('회원가입 실패');
+     //   return await response.json();
     },
 
     // ===========================
     // 📦 상품 API
     // ===========================
     getProducts: async () => {
-        const response = await fetch(`${API_BASE_URL}/products`);
+        const response = await fetch(`${API_URLS}/products`);
         if (!response.ok) throw new Error('상품 로드 실패');
         const data = await response.json();
         return data.products || [];
     },
 
     // ===========================
-    // 🛍️ 주문 API
+    // 🛍️ 주문 API (Order API)
     // ===========================
     createOrder: async (orderData) => {
-        const response = await fetch(`${API_BASE_URL}/orders`, {
+        const response = await fetch(`${API_URLS}/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData)
@@ -1320,45 +1292,145 @@
 
     getUserOrders: async (userId) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/orders/user/${userId}`);
+            const response = await fetch(`${API_URLS}/orders/user/${userId}`);
             if (!response.ok) throw new Error('로드 실패');
             const data = await response.json();
             
-            // 🔥 안전장치: data.orders가 없으면 빈 배열 반환
             return Array.isArray(data.orders) ? data.orders : []; 
         } catch (error) {
-            console.error(error);
-            return []; // 에러 나면 빈 배열 반환
+            return [];
         }
     },
 
-    // 🔥 [관리자용] 모든 주문 목록 조회 (새로 추가됨)
     getAllOrders: async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/orders`);
+            const response = await fetch(`${API_URLS}/orders`);
             if (!response.ok) throw new Error('로드 실패');
             const data = await response.json();
             
-            // 🔥 안전장치 추가
             return Array.isArray(data.orders) ? data.orders : [];
         } catch (error) {
-            console.error(error);
             return [];
         }
     },
     // ===========================
-    // 💳 결제 API
+    // 💳 결제 API (Payment 폴더 연동) - JWT 인증 적용
     // ===========================
-    processPayment: async (paymentData) => {
-        const response = await fetch(`${API_BASE_URL}/payment`, {
+    // 주문 생성 (Order API)
+    createPaymentOrder: async (userId, items, totalPrice) => {
+        const response = await fetch(`${API_URLS}/orders`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(paymentData)
+            headers: TokenManager.getAuthHeaders(),
+            body: JSON.stringify({
+                user_id: userId,
+                items: items,
+                total_price: totalPrice
+            })
         });
+        
+        // 401 에러 시 토큰 만료 처리
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+        }
+        
+        if (!response.ok) throw new Error('주문 생성 실패');
+        return await response.json();
+    },
+
+    // 결제 처리 (Payment API)
+    processPayment: async (orderId, paymentMethod, cardData = null) => {
+        try {
+            // UUID v4 생성 (idempotency key)
+            const idempotencyKey = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+
+            const requestBody = {
+                order_id: parseInt(orderId),
+                payment_method: String(paymentMethod),
+                idempotency_key: String(idempotencyKey)
+            };
+            
+            // 카드 정보 추가 (있는 경우)
+            if (cardData) {
+                requestBody.card_data = {
+                    card_number: String(cardData.card_number || ''),
+                    card_holder: String(cardData.card_holder || ''),
+                    expiry: String(cardData.expiry || ''),
+                    cvv: String(cardData.cvv || ''),
+                    saved_card_id: cardData.saved_card_id ? parseInt(cardData.saved_card_id) : undefined
+                };
+            }
+
+            const token = TokenManager.getToken();
+            const headers = TokenManager.getAuthHeaders();
+            
+            let requestBodyJson;
+            try {
+                requestBodyJson = JSON.stringify(requestBody);
+            } catch (jsonError) {
+                throw new Error('요청 데이터 변환 실패: ' + jsonError.message);
+            }
+
+            const response = await fetch(`${API_URLS}/payments`, {
+                method: 'POST',
+                headers: headers,
+                body: requestBodyJson
+            });
+                        
+            // 401 에러 시 토큰 만료 처리
+            if (response.status === 401) {
+                TokenManager.removeToken();
+                throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+            }
+            
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || err.error_message || '결제 처리에 실패했습니다.');
+            }
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    // 결제 조회 (Payment API)
+    getPayment: async (paymentId) => {
+        const response = await fetch(`${API_URLS}/payments/${paymentId}`, {
+            headers: TokenManager.getAuthHeaders()
+        });
+        
+        // 401 에러 시 토큰 만료 처리
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+        }
+        
+        if (!response.ok) throw new Error('결제 조회 실패');
+        return await response.json();
+    },
+
+    // 결제 취소 (Payment API)
+    cancelPayment: async (paymentId, reason) => {
+        const response = await fetch(`${API_URLS}/payments/${paymentId}/cancel`, {
+            method: 'POST',
+            headers: TokenManager.getAuthHeaders(),
+            body: JSON.stringify({ reason: reason || '고객 요청' })
+        });
+        
+        // 401 에러 시 토큰 만료 처리
+        if (response.status === 401) {
+            TokenManager.removeToken();
+            throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+        }
         
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.message || '결제 처리에 실패했습니다.');
+            throw new Error(err.message || '결제 취소에 실패했습니다.');
         }
         return await response.json();
     },
@@ -1367,7 +1439,7 @@
     // ⚙️ 관리자 API (주문 상태 변경)
     // ===========================
     updateOrderStatus: async (orderId, status) => {
-        const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+        const response = await fetch(`${API_URLS}/orders/${orderId}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status })
@@ -1377,38 +1449,9 @@
             throw new Error('상태 변경 실패');
         }
         return await response.json();
-    }
+    },
+
 };
-
-
-
-        // ============================================
-        // 스토리지 헬퍼 (API 우선, localStorage fallback)
-        // ============================================
-        const Storage = {
-            getUsers: () => {
-                // localStorage fallback (로컬 테스트용)
-                const users = localStorage.getItem('megapang_users');
-                return users ? JSON.parse(users) : [];
-            },
-            saveUsers: (users) => {
-                localStorage.setItem('megapang_users', JSON.stringify(users));
-            },
-            getOrders: () => {
-                const orders = localStorage.getItem('megapang_orders');
-                return orders ? JSON.parse(orders) : [];
-            },
-            saveOrders: (orders) => {
-                localStorage.setItem('megapang_orders', JSON.stringify(orders));
-            },
-            getProducts: () => {
-                const products = localStorage.getItem('megapang_products');
-                return products ? JSON.parse(products) : initialProducts;
-            },
-            saveProducts: (products) => {
-                localStorage.setItem('megapang_products', JSON.stringify(products));
-            }
-        };
 
 
         // 로그인 컴포넌트
@@ -1512,6 +1555,12 @@
             };
 
             const openPostcode = () => {
+                // daum 객체 존재 확인
+                if (typeof daum === 'undefined') {
+                    alert('주소 검색 서비스를 로드할 수 없습니다. 페이지를 새로고침해주세요.');
+                    return;
+                }
+
                 new daum.Postcode({
                     oncomplete: function(data) {
                         let fullAddress = data.address;
@@ -1536,6 +1585,11 @@
 
                         // 상세주소 입력란에 포커스
                         document.getElementById('detailAddress').focus();
+                    },
+                    onclose: function(state) {
+                        if (state !== 'FORCE_CLOSE') {
+                            console.log('주소 검색 취소됨');
+                        }
                     }
                 }).open();
             };
@@ -1743,9 +1797,7 @@
                     const productsData = await API.getProducts();
                     setProducts(productsData);
                 } catch (error) {
-                    console.error('상품 로드 실패:', error);
-                    // Fallback: localStorage 사용
-                    setProducts(Storage.getProducts());
+                    setProducts([]);
                 } finally {
                     setLoading(false);
                 }
@@ -1910,7 +1962,6 @@
                                     return product;
                                 });
                                 setProducts(updatedProducts);
-                                Storage.saveProducts(updatedProducts);
                                 setCart([]);
                                 setShowCheckout(false);
                             }}
@@ -1948,7 +1999,6 @@
                     const userId = user.user_id || user.id;
 
             if (!userId) {
-                console.error("User ID not found:", user);
                 return;
             }
 
@@ -1957,14 +2007,13 @@
             setUserOrders(orders);
 
         } catch (error) {
-            console.error('주문 내역 로드 실패:', error);
             setUserOrders([]);
         } finally {
             setLoadingOrders(false);
         }
     };
 
-            const openPostcode = () => {
+    const openPostcode = () => {
         new daum.Postcode({
             oncomplete: function(data) {
                 let fullAddress = data.address;
@@ -1980,7 +2029,7 @@
         }).open();
     };
 
-            const handleProfileUpdate = (e) => {
+                const handleProfileUpdate = (e) => {
         e.preventDefault();
         alert('프로필 업데이트 기능은 아직 구현되지 않았습니다. (DB 연동 필요)');
         setEditMode(false);
@@ -2283,6 +2332,14 @@
                             )}
                         </div>
                     )}
+
+                    {activeTab === 'cards' && (
+                        <div style={{ textAlign: 'center', padding: '3rem' }}>
+                            <p>카드 관리 기능이 제거되었습니다.</p>
+                        </div>
+                    )}
+
+
                 </div>
             </div>
         </div>
@@ -2360,206 +2417,360 @@
         }
 
         // 결제 모달
-        function CheckoutModal({ user, cart, totalPrice, onClose, onComplete }) {
-            const [paymentMethod, setPaymentMethod] = useState('card');
-            const [processing, setProcessing] = useState(false);
-            const [complete, setComplete] = useState(false);
-            const [formData, setFormData] = useState({
-                cardNumber: '',
-                cardExpiry: '',
-                cardCVC: '',
-                cardName: ''
-            });
+        // ============================================
+// Payment API 연동 Checkout 컴포넌트
+// index.html에 추가할 코드
+// ============================================
 
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                setProcessing(true);
+// CheckoutModal 컴포넌트 (Payment API 연동 버전)
+function CheckoutModal({ user, cart, totalPrice, onClose, onComplete }) {
+    const [paymentMethod, setPaymentMethod] = useState('card');
+    const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
+    const [paymentResult, setPaymentResult] = useState(null);
+    
+    // 카드 정보 state
+    const [cardNumber, setCardNumber] = useState('');
+    const [cardHolder, setCardHolder] = useState('');
+    const [expiry, setExpiry] = useState('');
+    const [cvv, setCvv] = useState('');
 
-                try {
-                    // 1. 주문 생성 요청 (재고 차감 X, 상태: pending)
-                    const orderData = {
-                        user_id: user.id || user.user_id, // user_id 확인 필요
-                        items: cart,
-                        total_price: totalPrice,
-                        payment_method: paymentMethod
-                    };
+    const handlePayment = async (e) => {
+        e.preventDefault();
+        setProcessing(true);
+        setError('');
 
-                    const orderResult = await API.createOrder(orderData);
-                    
-                    if (!orderResult.success) throw new Error("주문 생성 실패");
+        try {
+            const userId = user.user_id || user.id;
+            
+            const orderItems = cart.map(item => ({
+                product_id: item.id,
+                quantity: item.quantity,
+                price: item.price
+            }));
 
-                    // 2. 결제 요청 (여기서 재고 차감 O, DynamoDB 저장)
-                    const paymentData = {
-                        user_id: user.id || user.user_id,
-                        order_id: orderResult.order_id,
-                        payment_method: paymentMethod,
-                        amount: totalPrice,
-                        items: cart // 혹시 필요할 수 있으니 전달
-                    };
+            const orderResponse = await API.createPaymentOrder(
+                userId,
+                orderItems,
+                totalPrice
+            );
 
-                    await API.processPayment(paymentData);
+            const orderId = orderResponse.order_id;
+            
+            // 카드 정보 준비 (카드 결제인 경우)
+            let cardData = null;
+            if (paymentMethod === 'card' || paymentMethod === 'credit_card') {
+                // 새 카드 정보 사용
+                cardData = {
+                    card_number: cardNumber.replace(/\s/g, ''),
+                    card_holder: cardHolder,
+                    expiry: expiry,
+                    cvv: cvv
+                };
+            }
+            
+            const paymentResponse = await API.processPayment(
+                orderId,
+                paymentMethod === 'card' ? 'credit_card' : paymentMethod,
+                cardData
+            );
 
-                    trackUserAction('purchase_complete', {
-                        orderId: orderResult.order_id,
-                        total: totalPrice
-                    });
+            // 결제 성공
+            if (paymentResponse.success && paymentResponse.status === 'completed') {
+                setSuccess(true);
+                setPaymentResult({
+                    orderId: orderId,
+                    paymentId: paymentResponse.payment_id,
+                    transactionId: paymentResponse.transaction_id,
+                    amount: totalPrice
+                });
 
-                    setProcessing(false);
-                    setComplete(true);
+                // 사용자 행동 트래킹
+                trackUserAction('payment_completed', {
+                    orderId: orderId,
+                    paymentId: paymentResponse.payment_id,
+                    amount: totalPrice,
+                    method: paymentMethod
+                });
 
-                    setTimeout(() => {
-                        onComplete();
-                    }, 2000);
-                } catch (error) {
-                    console.error('결제 프로세스 실패:', error);
-                    alert(`결제 실패: ${error.message}`);
-                    setProcessing(false);
-                }
-            };
-
-            if (complete) {
-                return (
-                    <div className="modal" onClick={onClose}>
-                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                            <div className="alert alert-success" style={{ textAlign: 'center' }}>
-                                <h2>✅ 결제 완료!</h2>
-                                <p>주문이 성공적으로 처리되었습니다.</p>
-                                <p>감사합니다! 🎉</p>
-                            </div>
-                        </div>
-                    </div>
-                );
+                // 3초 후 완료 처리
+                setTimeout(() => {
+                    onComplete();
+                }, 3000);
+            } else {
+                throw new Error(paymentResponse.message || '결제 처리에 실패했습니다');
             }
 
-            return (
-                <div className="modal" onClick={onClose}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <div className="modal-title">💳 결제하기</div>
-                            <button className="close-btn" onClick={onClose}>✕</button>
-                        </div>
+        } catch (error) {
+            setError(error.message || '결제 처리 중 오류가 발생했습니다');
+            
+            trackUserAction('payment_failed', {
+                error: error.message,
+                method: paymentMethod
+            });
+        } finally {
+            setProcessing(false);
+        }
+    };
 
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <h3 style={{ marginBottom: '1rem' }}>주문 정보</h3>
-                            {cart.map(item => (
-                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                    <span>{item.name} x {item.quantity}</span>
-                                    <span>₩{(item.price * item.quantity).toLocaleString()}</span>
-                                </div>
-                            ))}
-                            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid #e9ecef', fontWeight: 'bold', fontSize: '1.2rem' }}>
-                                총 결제 금액: ₩{totalPrice.toLocaleString()}
+    // 결제 성공 화면
+    if (success && paymentResult) {
+        return (
+            <div className="modal">
+                <div className="modal-content">
+                    <div style={{ textAlign: 'center', padding: '2rem' }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+                        <h2 style={{ color: '#2ecc71', marginBottom: '1rem' }}>결제 완료!</h2>
+                        <p style={{ color: '#666', marginBottom: '2rem' }}>
+                            주문이 성공적으로 처리되었습니다
+                        </p>
+                        
+                        <div style={{ 
+                            background: '#f8f9fa', 
+                            padding: '1.5rem', 
+                            borderRadius: '10px',
+                            textAlign: 'left',
+                            marginBottom: '1.5rem'
+                        }}>
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <strong>주문 번호:</strong> {paymentResult.orderId}
+                            </div>
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <strong>결제 ID:</strong> {paymentResult.paymentId}
+                            </div>
+                            <div style={{ marginBottom: '0.75rem' }}>
+                                <strong>거래 ID:</strong> {paymentResult.transactionId}
+                            </div>
+                            <div>
+                                <strong>결제 금액:</strong> ₩{paymentResult.amount.toLocaleString()}
                             </div>
                         </div>
 
-                        <div className="payment-section">
-                            <h3 style={{ marginBottom: '1rem' }}>결제 수단</h3>
-                            <div className="payment-method">
-                                <div 
-                                    className={`payment-option ${paymentMethod === 'card' ? 'selected' : ''}`}
-                                    onClick={() => setPaymentMethod('card')}
-                                >
-                                    💳 신용카드
-                                </div>
-                                <div 
-                                    className={`payment-option ${paymentMethod === 'bank' ? 'selected' : ''}`}
-                                    onClick={() => setPaymentMethod('bank')}
-                                >
-                                    🏦 계좌이체
-                                </div>
-                                <div 
-                                    className={`payment-option ${paymentMethod === 'phone' ? 'selected' : ''}`}
-                                    onClick={() => setPaymentMethod('phone')}
-                                >
-                                    📱 휴대폰
-                                </div>
-                            </div>
-
-                            {paymentMethod === 'card' && (
-                                <form onSubmit={handleSubmit}>
-                                    <div className="form-group">
-                                        <label className="form-label">카드 번호</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="1234-5678-9012-3456"
-                                            value={formData.cardNumber}
-                                            onChange={(e) => setFormData({...formData, cardNumber: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="card-input-group">
-                                        <div className="form-group">
-                                            <label className="form-label">유효기간</label>
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                placeholder="MM/YY"
-                                                value={formData.cardExpiry}
-                                                onChange={(e) => setFormData({...formData, cardExpiry: e.target.value})}
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label className="form-label">CVC</label>
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                placeholder="123"
-                                                value={formData.cardCVC}
-                                                onChange={(e) => setFormData({...formData, cardCVC: e.target.value})}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label className="form-label">카드 소유자명</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="홍길동"
-                                            value={formData.cardName}
-                                            onChange={(e) => setFormData({...formData, cardName: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-
-                                    <button 
-                                        type="submit" 
-                                        className="btn btn-primary"
-                                        disabled={processing}
-                                    >
-                                        {processing ? '처리 중...' : `₩${totalPrice.toLocaleString()} 결제하기`}
-                                    </button>
-                                </form>
-                            )}
-
-                            {paymentMethod === 'bank' && (
-                                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                    <p>계좌번호: 123-456-789012</p>
-                                    <p>예금주: (주)메가팡</p>
-                                    <button className="btn btn-primary" onClick={handleSubmit}>
-                                        {processing ? '처리 중...' : '입금 완료'}
-                                    </button>
-                                </div>
-                            )}
-
-                            {paymentMethod === 'phone' && (
-                                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                    <p>휴대폰 결제 화면으로 이동합니다</p>
-                                    <button className="btn btn-primary" onClick={handleSubmit}>
-                                        {processing ? '처리 중...' : '휴대폰 결제하기'}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        <p style={{ fontSize: '0.9rem', color: '#999' }}>
+                            잠시 후 자동으로 닫힙니다...
+                        </p>
                     </div>
                 </div>
-            );
-        }
+            </div>
+        );
+    }
+
+    // 결제 진행 화면
+    return (
+        <div className="modal">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h2 className="modal-title">💳 결제하기</h2>
+                    <button className="close-btn" onClick={onClose} disabled={processing}>×</button>
+                </div>
+
+                {error && (
+                    <div className="alert alert-error">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={handlePayment}>
+                    {/* 주문 요약 */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ marginBottom: '1rem' }}>주문 요약</h3>
+                        {cart.map(item => (
+                            <div key={item.id} style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between',
+                                padding: '0.75rem 0',
+                                borderBottom: '1px solid #e9ecef'
+                            }}>
+                                <span>{item.name} x {item.quantity}</span>
+                                <span>₩{(item.price * item.quantity).toLocaleString()}</span>
+                            </div>
+                        ))}
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between',
+                            padding: '1rem 0',
+                            fontSize: '1.2rem',
+                            fontWeight: 'bold',
+                            color: '#667eea'
+                        }}>
+                            <span>총 결제 금액</span>
+                            <span>₩{totalPrice.toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    {/* 배송 정보 */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ marginBottom: '1rem' }}>배송 정보</h3>
+                        <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px' }}>
+                            <div style={{ marginBottom: '0.5rem' }}>
+                                <strong>받는 사람:</strong> {user.name}
+                            </div>
+                            <div style={{ marginBottom: '0.5rem' }}>
+                                <strong>연락처:</strong> {user.phone || '미등록'}
+                            </div>
+                            <div>
+                                <strong>배송지:</strong> {user.address || '미등록'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 결제 수단 선택 */}
+                    <div className="payment-section">
+                        <h3 style={{ marginBottom: '1rem' }}>결제 수단</h3>
+                        <div className="payment-method">
+                            <div 
+                                className={`payment-option ${paymentMethod === 'card' ? 'selected' : ''}`}
+                                onClick={() => setPaymentMethod('card')}
+                            >
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💳</div>
+                                <div>신용/체크카드</div>
+                            </div>
+                            <div 
+                                className={`payment-option ${paymentMethod === 'bank_transfer' ? 'selected' : ''}`}
+                                onClick={() => setPaymentMethod('bank_transfer')}
+                            >
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🏦</div>
+                                <div>계좌이체</div>
+                            </div>
+                            <div 
+                                className={`payment-option ${paymentMethod === 'mobile' ? 'selected' : ''}`}
+                                onClick={() => setPaymentMethod('mobile')}
+                            >
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📱</div>
+                                <div>모바일 결제</div>
+                            </div>
+                        </div>
+
+                        {/* 카드 정보 입력 (카드 결제 선택 시) */}
+                        {paymentMethod === 'card' && (
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <div style={{ 
+                                    background: '#e8f5e9', 
+                                    border: '2px solid #4caf50',
+                                    padding: '1rem', 
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    marginBottom: '1rem'
+                                }}>
+                                    <strong>🔒 보안 안내</strong><br/>
+                                    • 카드 정보는 암호화되어 전송됩니다<br/>
+                                    • 카드번호와 CVV는 저장되지 않습니다<br/>
+                                    • 결제 토큰만 안전하게 보관됩니다
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">카드번호</label>
+                                    <input 
+                                        type="text" 
+                                        className="form-input"
+                                        placeholder="1234 5678 9012 3456"
+                                        value={cardNumber}
+                                        onChange={(e) => {
+                                            let value = e.target.value.replace(/\s/g, '');
+                                            let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                                            if (formatted.length <= 19) {
+                                                setCardNumber(formatted);
+                                            }
+                                        }}
+                                        maxLength="19"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">카드 소유자 이름</label>
+                                    <input 
+                                        type="text" 
+                                        className="form-input"
+                                        placeholder="HONG GILDONG"
+                                        value={cardHolder}
+                                        onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="card-input-group">
+                                    <div className="form-group">
+                                        <label className="form-label">만료일</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input"
+                                            placeholder="MM/YY"
+                                            value={expiry}
+                                            onChange={(e) => {
+                                                let value = e.target.value.replace(/\D/g, '');
+                                                if (value.length >= 2) {
+                                                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                                                }
+                                                if (value.length <= 5) {
+                                                    setExpiry(value);
+                                                }
+                                            }}
+                                            maxLength="5"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">CVV</label>
+                                        <input 
+                                            type="password" 
+                                            className="form-input"
+                                            placeholder="123"
+                                            value={cvv}
+                                            onChange={(e) => {
+                                                const value = e.target.value.replace(/\D/g, '');
+                                                if (value.length <= 4) {
+                                                    setCvv(value);
+                                                }
+                                            }}
+                                            maxLength="4"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{ 
+                            background: '#e7f3ff', 
+                            padding: '1rem', 
+                            borderRadius: '8px',
+                            fontSize: '0.9rem',
+                            color: '#004085',
+                            marginTop: '1rem'
+                        }}>
+                            <strong>💡 안전한 결제:</strong> 모든 결제는 암호화되어 안전하게 처리됩니다.
+                            중복 결제 방지 시스템이 적용되어 있습니다.
+                        </div>
+                    </div>
+
+                    {/* 결제 버튼 */}
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                        <button 
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={onClose}
+                            disabled={processing}
+                            style={{ flex: 1 }}
+                        >
+                            취소
+                        </button>
+                        <button 
+                            type="submit"
+                            className="btn btn-success"
+                            disabled={processing}
+                            style={{ flex: 2 }}
+                        >
+                            {processing ? '결제 처리 중...' : `₩${totalPrice.toLocaleString()} 결제하기`}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 
         // 관리자 대시보드
         function AdminDashboard({ user, onLogout }) {
@@ -2578,15 +2789,9 @@
 
                         // 2. 주문 로드 (DB 연동)
                         const orderData = await API.getAllOrders();
-                        setOrders(Array.isArray(orderData) ? orderData : []); // 안전장치
-
-                        // 3. 유저 로드 (로컬 스토리지 Fallback)
-                        const userList = Storage.getUsers();
-                        setUsers(Array.isArray(userList) ? userList : []); // 안전장치
+                        setOrders(Array.isArray(orderData) ? orderData : []);
 
                     } catch (error) {
-                        console.error("데이터 로드 실패:", error);
-                        // 에러나도 빈 배열로 초기화해서 화면 죽는 것 방지
                         setProducts([]);
                         setOrders([]);
                         setUsers([]);
@@ -2752,7 +2957,6 @@
         if (!confirm("정말 삭제하시겠습니까?")) return;
 
         try {
-            console.log(`🗑️ 상품 삭제 중... ID: ${id}`);
             const res = await fetch(`${API_BASE_URL}/products/${id}`, {
                 method: "DELETE",
             });
@@ -2760,15 +2964,12 @@
             const data = await res.json();
 
             if (data.success) {
-                console.log('✅ 삭제 성공!');
                 alert("삭제되었습니다!");
-                await fetchProducts(); // ✅ 삭제 후 목록 새로고침
+                await fetchProducts();
             } else {
-                console.error('❌ 삭제 실패:', data);
                 alert("삭제 실패");
             }
         } catch (error) {
-            console.error('❌ 삭제 요청 실패:', error);
             alert('삭제 중 오류가 발생했습니다.');
         }
     };
@@ -2777,8 +2978,6 @@
     // 상품 수정
     const handleSave = async (product) => {
         try {
-            console.log('📝 상품 수정 중...', product);
-            
             const formData = new FormData();
             formData.append("name", product.name);
             formData.append("description", product.description);
@@ -2798,16 +2997,13 @@
             const data = await res.json();
 
             if (data.success) {
-                console.log('✅ 수정 성공!');
                 alert("수정되었습니다!");
                 setEditProduct(null);
-                await fetchProducts(); // ✅ 수정 후 목록 새로고침
+                await fetchProducts();
             } else {
-                console.error('❌ 수정 실패:', data);
                 alert("수정 실패");
             }
         } catch (error) {
-            console.error('❌ 수정 요청 실패:', error);
             alert('수정 중 오류가 발생했습니다.');
         }
     };
@@ -2816,8 +3012,6 @@
     // 상품 추가
     const handleAdd = async (product) => {
         try {
-            console.log('➕ 상품 추가 중...', product);
-            
             const formData = new FormData();
             formData.append("name", product.name);
             formData.append("description", product.description);
@@ -2826,30 +3020,24 @@
             formData.append("stock", product.stock);
 
             if (product.file) {
-                console.log('📷 이미지 포함:', product.file.name);
                 formData.append("image", product.file);
             }
 
-            console.log('📤 API 요청 전송:', `${API_BASE_URL}/products`);
             const res = await fetch(`${API_BASE_URL}/products`, {
                 method: "POST",
                 body: formData,
             });
 
             const data = await res.json();
-            console.log('📥 API 응답:', data);
 
             if (data.success) {
-                console.log('✅ 추가 성공!');
                 alert("상품이 추가되었습니다!");
                 setShowAddForm(false);
-                await fetchProducts(); // ✅ 추가 후 목록 새로고침
+                await fetchProducts();
             } else {
-                console.error('❌ 추가 실패:', data);
                 alert("추가 실패: " + (data.message || '알 수 없는 오류'));
             }
         } catch (error) {
-            console.error('❌ 추가 요청 실패:', error);
             alert('추가 중 오류가 발생했습니다: ' + error.message);
         }
     };
@@ -3090,7 +3278,6 @@ function ProductEditModal({ product, onSave, onClose }) {
                 alert("변경 실패");
             }
         } catch(err) {
-            console.error(err);
             alert("오류 발생");
         }
     };
@@ -3214,21 +3401,12 @@ function ProductEditModal({ product, onSave, onClose }) {
             }, []);
 
             const handleLogin = (user) => {
-                console.log('🔐 로그인 처리:', { 
-                    이름: user.name, 
-                    이메일: user.email, 
-                    권한: user.role 
-                });
-                
                 setCurrentUser(user);
                 sessionStorage.setItem('megapang_user', JSON.stringify(user));
                 
-                // admin 또는 super_admin이면 관리자 페이지로, 그 외에는 쇼핑몰로
                 if (user.role === 'admin' || user.role === 'super_admin') {
-                    console.log('✅ 관리자 페이지로 이동');
                     setCurrentPage('admin');
                 } else {
-                    console.log('✅ 일반 사용자 페이지로 이동');
                     setCurrentPage('shop');
                 }
             };
@@ -3240,6 +3418,7 @@ function ProductEditModal({ product, onSave, onClose }) {
             const handleLogout = () => {
                 setCurrentUser(null);
                 sessionStorage.removeItem('megapang_user');
+                TokenManager.removeToken(); // JWT 토큰 제거
                 setCurrentPage('login');
                 trackUserAction('logout', { userId: currentUser?.id });
             };
@@ -3335,7 +3514,7 @@ function ProductEditModal({ product, onSave, onClose }) {
         const LEX_CONFIG = {
             // ✅ ALB 또는 API Gateway 엔드포인트
             // 예시: 'https://your-alb-url.elb.amazonaws.com'
-            apiEndpoint: API_BASE_URL  // 기존 API_BASE_URL 재사용
+            apiEndpoint: API_URLS  // 기존 API_URLS 재사용
         };
 
         let sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substring(7);

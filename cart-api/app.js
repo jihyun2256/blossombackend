@@ -2,10 +2,14 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cartRouter from './routes/cart.js';
+import { initRedis } from './config/redis.js';
 
 dotenv.config();
 
 const app = express();
+
+// Redis 초기화 (비동기, 실패해도 앱은 계속 동작)
+initRedis();
 // 1️⃣ CORS 미들웨어 (기본 허용)
 app.use(cors({
   origin: "*",   // S3 도메인 포함 전체 허용

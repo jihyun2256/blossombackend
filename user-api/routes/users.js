@@ -2,6 +2,7 @@ import express from "express";
 import bcryptjs from "bcryptjs";
 import { db } from "../../shared/db.js";
 import { generateToken } from "../../shared/auth.js";
+import redis from "../config/redis.js";
 
 const router = express.Router();
 
@@ -42,8 +43,31 @@ router.post("/login", async (req, res) => {
         const user = rows[0];
         if (!user.is_active) return res.status(403).json({ success: false, message: "ACCOUNT_INACTIVE" });
         const isMatch = await bcryptjs.compare(password, user.password_hash);
-        if (!isMatch) return res.status(401).json({ success: false, message: "INVALID_PASSWORD" });
+        if (!isMatch) {
+            // 로그인 실패 횟수 Redis에 저장 (Rate Limit 예시)
+            try {
+                const ip = req.ip || req.connection?.remoteAddress || "unknown";
+                const key = `login_attempt:${ip}`;
+                const count = await redis.incr(key);
+                // 5분 TTL 설정
+                if (count === 1) {
+                    await redis.expire(key, 300);
+                }
+            } catch (redisErr) {
+                console.error("Redis error on login attempt tracking:", redisErr);
+            }
+            return res.status(401).json({ success: false, message: "INVALID_PASSWORD" });
+        }
         await db.query("UPDATE users SET last_login = NOW() WHERE user_id = ?", [user.user_id]);
+
+        // 예: 로그인 Refresh Token 저장 (Redis)
+        try {
+            const refreshTokenKey = `refresh:${user.user_id}`;
+            const refreshToken = generateToken(user, { type: "refresh" });
+            await redis.set(refreshTokenKey, refreshToken, { EX: 60 * 60 * 24 * 7 }); // 7일 TTL
+        } catch (redisErr) {
+            console.error("Redis error on refresh token store:", redisErr);
+        }
         
         // JWT 토큰 생성 (동적 데이터 포함)
         const token = generateToken(user, {
