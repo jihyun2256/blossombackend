@@ -26,6 +26,13 @@ router.post("/register", async (req, res) => {
              VALUES (?, ?, ?, ?, 'customer', TRUE, FALSE)`,
             [email, password_hash, name, phone || null]
         );
+        // Cache delete: 유저가 새로 생성되었으므로 전체 유저 목록 캐시 무효화
+        try {
+            // Cache delete: users:all
+            await redis.del("users:all");
+        } catch (redisErr) {
+            console.error("Redis error on users:all cache delete after register:", redisErr);
+        }
 
         return res.status(201).json({ success: true, message: "REGISTERED_SUCCESSFULLY", user: { user_id: result.insertId, email, name, role: 'customer' } });
     } catch (err) {
@@ -97,7 +104,30 @@ router.post("/login", async (req, res) => {
 
 router.get("/", async (req, res) => {
     try {
+        const cacheKey = "users:all";
+
+        // Cache get: 전체 유저 목록 캐시 확인
+        try {
+            const cached = await redis.get(cacheKey);
+            if (cached) {
+                // Cache hit: Redis에서 전체 유저 목록 반환
+                const users = JSON.parse(cached);
+                return res.json({ success: true, users });
+            }
+        } catch (redisErr) {
+            console.error("Redis error on users:all cache get:", redisErr);
+        }
+
+        // Cache miss: DB에서 유저 목록 조회
         const [rows] = await db.query(`SELECT user_id, email, name, phone, role, is_active, email_verified, created_at, last_login FROM users ORDER BY created_at DESC`);
+
+        // Cache set: 조회 결과를 Redis에 캐싱 (TTL = 60초)
+        try {
+            await redis.set(cacheKey, JSON.stringify(rows || []), { EX: 60 });
+        } catch (redisErr) {
+            console.error("Redis error on users:all cache set:", redisErr);
+        }
+
         return res.json({ success: true, users: rows });
     } catch (err) {
         console.error("GET USERS ERROR:", err);
@@ -108,9 +138,34 @@ router.get("/", async (req, res) => {
 router.get("/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
+        const cacheKey = `users:${userId}`;
+
+        // Cache get: 특정 유저 캐시 확인
+        try {
+            const cached = await redis.get(cacheKey);
+            if (cached) {
+                // Cache hit: Redis에서 유저 정보 반환
+                const user = JSON.parse(cached);
+                return res.json({ success: true, user });
+            }
+        } catch (redisErr) {
+            console.error("Redis error on users:{id} cache get:", redisErr);
+        }
+
+        // Cache miss: DB에서 유저 조회
         const [rows] = await db.query(`SELECT user_id, email, name, phone, role, is_active, email_verified, created_at, last_login FROM users WHERE user_id = ?`, [userId]);
         if (rows.length === 0) return res.status(404).json({ success: false, message: "USER_NOT_FOUND" });
-        return res.json({ success: true, user: rows[0] });
+
+        const user = rows[0];
+
+        // Cache set: 단건 유저 정보를 Redis에 캐싱 (TTL = 300초)
+        try {
+            await redis.set(cacheKey, JSON.stringify(user), { EX: 300 });
+        } catch (redisErr) {
+            console.error("Redis error on users:{id} cache set:", redisErr);
+        }
+
+        return res.json({ success: true, user });
     } catch (err) {
         console.error("GET USER ERROR:", err);
         return res.status(500).json({ success: false, message: "SERVER_ERROR", error: err.message });

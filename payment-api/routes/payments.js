@@ -13,6 +13,7 @@ import { checkIdempotency, storeIdempotencyResponse } from '../middleware/idempo
 import { logInfo, logError, maskSensitiveData } from '../utils/logger.js';
 import { processCardPayment } from '../services/cardService.js';
 import redis from '../config/redis.js';
+import { db } from '../../shared/db.js';
 
 // Order API URL
 const ORDER_API_URL = process.env.ORDER_API_URL || 'http://order-service';
@@ -157,6 +158,20 @@ router.post('/', validatePaymentRequest, checkIdempotency, async (req, res) => {
     const statusCode = result.status === 'completed' ? 200 : 422;
     res.status(statusCode).json(responseData);
 
+    // Cache delete: 결제가 생성되었으므로 관련 결제 캐시 무효화
+    try {
+      if (result.paymentId) {
+        // Cache delete: 단건 결제 캐시 (payments:{paymentId})
+        await redis.del(`payments:${result.paymentId}`);
+      }
+      if (order && order.user_id) {
+        // Cache delete: 사용자별 결제 목록 캐시 (payments:user:{userId})
+        await redis.del(`payments:user:${order.user_id}`);
+      }
+    } catch (redisErr) {
+      console.error('Redis error on payments cache delete after create:', redisErr);
+    }
+
     // 임시 결제 상태 Redis에 저장 (예시)
     try {
       const tempKey = `payment_status:${result.paymentId}`;
@@ -214,6 +229,61 @@ router.post('/', validatePaymentRequest, checkIdempotency, async (req, res) => {
 });
 
 /**
+ * GET /payments/user/:userId
+ * 특정 사용자의 결제 목록 조회 (캐싱 적용)
+ * key: payments:user:{userId}, TTL = 60초
+ */
+router.get('/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const cacheKey = `payments:user:${userId}`;
+
+  // Cache get: 사용자별 결제 목록 캐시 확인
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      // Cache hit: Redis에 저장된 결제 목록 반환
+      const payments = JSON.parse(cached);
+      return res.status(200).json({
+        success: true,
+        payments
+      });
+    }
+  } catch (redisErr) {
+    console.error('Redis error on payments:user cache get:', redisErr);
+  }
+
+  try {
+    // Cache miss: DB에서 사용자별 결제 목록 조회
+    const [rows] = await db.execute(
+      'SELECT * FROM payments WHERE user_id = ? ORDER BY created_at DESC',
+      [userId]
+    );
+
+    // Cache set: 조회 결과를 Redis에 캐싱 (TTL = 60초)
+    try {
+      await redis.set(cacheKey, JSON.stringify(rows || []), { EX: 60 });
+    } catch (redisErr) {
+      console.error('Redis error on payments:user cache set:', redisErr);
+    }
+
+    return res.status(200).json({
+      success: true,
+      payments: rows || []
+    });
+  } catch (error) {
+    logError('Failed to retrieve payments by user via API', error, {
+      user_id: userId
+    });
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve payments',
+      error_code: 'DATABASE_ERROR'
+    });
+  }
+});
+
+/**
  * GET /payments/:id
  * 결제 조회 엔드포인트
  * 요구사항: 2.1, 3.1
@@ -221,8 +291,24 @@ router.post('/', validatePaymentRequest, checkIdempotency, async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const cacheKey = `payments:${id}`;
 
-    // 결제 조회
+    // Cache get: 단건 결제 캐시 확인
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        // Cache hit: Redis에 저장된 결제 정보 반환
+        const cachedPayment = JSON.parse(cached);
+        return res.status(200).json({
+          success: true,
+          payment: cachedPayment
+        });
+      }
+    } catch (redisErr) {
+      console.error('Redis error on payments:{id} cache get:', redisErr);
+    }
+
+    // Cache miss: 서비스 레이어에서 결제 조회
     const payment = await getPaymentById(id);
 
     if (!payment) {
@@ -236,6 +322,13 @@ router.get('/:id', async (req, res) => {
 
     // 민감정보 마스킹
     const maskedPayment = maskSensitiveData(payment);
+
+    // Cache set: 마스킹된 결제 정보를 Redis에 캐싱 (TTL = 180초)
+    try {
+      await redis.set(cacheKey, JSON.stringify(maskedPayment), { EX: 180 });
+    } catch (redisErr) {
+      console.error('Redis error on payments:{id} cache set:', redisErr);
+    }
 
     logInfo('Payment retrieved via API', { payment_id: id });
 
@@ -272,6 +365,30 @@ router.post('/:id/cancel', validateCancellationRequest, async (req, res) => {
 
     // 결제 취소 처리
     const result = await cancelPayment(id, reason, cancelledBy);
+
+    // Cache delete: 결제 상태가 변경되었으므로 관련 캐시 무효화
+    try {
+      // 취소된 결제 정보 조회 (사용자 ID 확인용)
+      let paymentUserId = null;
+      try {
+        const payment = await getPaymentById(id);
+        if (payment && payment.user_id) {
+          paymentUserId = payment.user_id;
+        }
+      } catch (innerErr) {
+        console.error('Error fetching payment after cancellation for cache delete:', innerErr);
+      }
+
+      // Cache delete: 단건 결제 캐시
+      await redis.del(`payments:${id}`);
+
+      // Cache delete: 사용자별 결제 목록 캐시
+      if (paymentUserId) {
+        await redis.del(`payments:user:${paymentUserId}`);
+      }
+    } catch (redisErr) {
+      console.error('Redis error on payments cache delete after cancel:', redisErr);
+    }
 
     logInfo('Payment cancelled via API', {
       payment_id: id,

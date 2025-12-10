@@ -17,11 +17,11 @@ router.post('/', async (req, res) => {
       'INSERT INTO cart (user_id, product_id, product_name, price, quantity) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity + ?, updated_at = NOW()',
       [user_id, product_id, product_name, price, quantity, quantity]
     );
-    // 장바구니 변경 시 캐시 무효화
+    // Cache delete: 장바구니에 변경이 발생했으므로 해당 사용자의 장바구니 캐시 무효화
     try {
-      await redis.del(`cart:${user_id}`);
+      await redis.del(`carts:${user_id}`);
     } catch (redisErr) {
-      console.error('Redis error on cart invalidate:', redisErr);
+      console.error('Redis error on carts cache delete after add:', redisErr);
     }
 
     return res.json({ success: true, message: 'ITEM_ADDED_TO_CART' });
@@ -35,29 +35,34 @@ router.post('/', async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
-    const cacheKey = `cart:${userId}`;
+    const cacheKey = `carts:${userId}`;
 
+    // Cache get: 해당 사용자의 장바구니 캐시 확인
     try {
       const cached = await redis.get(cacheKey);
       if (cached) {
-        return res.json({ success: true, items: JSON.parse(cached), source: 'cache' });
+        // Cache hit: Redis에 저장된 장바구니 아이템 반환
+        const items = JSON.parse(cached);
+        return res.json({ success: true, items });
       }
     } catch (redisErr) {
-      console.error('Redis error on cart get cache:', redisErr);
+      console.error('Redis error on carts cache get:', redisErr);
     }
 
+    // Cache miss: DB에서 장바구니 조회
     const [rows] = await db.query(
       'SELECT * FROM cart WHERE user_id = ? ORDER BY created_at DESC',
       [userId]
     );
 
+    // Cache set: 조회 결과를 Redis에 캐싱 (TTL = 120초)
     try {
-      await redis.set(cacheKey, JSON.stringify(rows || []), { EX: 300 }); // 5분 캐시
+      await redis.set(cacheKey, JSON.stringify(rows || []), { EX: 120 });
     } catch (redisErr) {
-      console.error('Redis error on cart set cache:', redisErr);
+      console.error('Redis error on carts cache set:', redisErr);
     }
 
-    return res.json({ success: true, items: rows || [], source: 'db' });
+    return res.json({ success: true, items: rows || [] });
   } catch (err) {
     console.error('GET CART ERROR:', err);
     return res.status(500).json({ success: false, message: 'SERVER_ERROR', error: err.message });
@@ -83,11 +88,11 @@ router.put('/:userId/:productId', async (req, res) => {
       return res.status(404).json({ success: false, message: 'CART_ITEM_NOT_FOUND' });
     }
 
-    // 장바구니 캐시 무효화
+    // Cache delete: 장바구니 수량이 변경되었으므로 해당 사용자의 장바구니 캐시 무효화
     try {
-      await redis.del(`cart:${userId}`);
+      await redis.del(`carts:${userId}`);
     } catch (redisErr) {
-      console.error('Redis error on cart invalidate:', redisErr);
+      console.error('Redis error on carts cache delete after update:', redisErr);
     }
 
     return res.json({ success: true, message: 'QUANTITY_UPDATED' });
@@ -111,11 +116,11 @@ router.delete('/:userId/:productId', async (req, res) => {
       return res.status(404).json({ success: false, message: 'CART_ITEM_NOT_FOUND' });
     }
 
-    // 장바구니 캐시 무효화
+    // Cache delete: 장바구니에서 상품이 제거되었으므로 해당 사용자의 장바구니 캐시 무효화
     try {
-      await redis.del(`cart:${userId}`);
+      await redis.del(`carts:${userId}`);
     } catch (redisErr) {
-      console.error('Redis error on cart invalidate:', redisErr);
+      console.error('Redis error on carts cache delete after remove:', redisErr);
     }
 
     return res.json({ success: true, message: 'ITEM_REMOVED_FROM_CART' });
@@ -135,11 +140,11 @@ router.delete('/user/:userId/clear', async (req, res) => {
       [userId]
     );
 
-    // 장바구니 캐시 무효화
+    // Cache delete: 장바구니가 전체 비워졌으므로 해당 사용자의 장바구니 캐시 무효화
     try {
-      await redis.del(`cart:${userId}`);
+      await redis.del(`carts:${userId}`);
     } catch (redisErr) {
-      console.error('Redis error on cart invalidate:', redisErr);
+      console.error('Redis error on carts cache delete after clear:', redisErr);
     }
 
     return res.json({ success: true, message: 'CART_CLEARED', deleted_count: result.affectedRows });
