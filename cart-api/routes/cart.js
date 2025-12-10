@@ -1,6 +1,9 @@
 import express from "express";
 import { db } from "../../shared/db.js";
-import redis from "../config/redis.js";
+import redisClient, { initRedis } from "../config/redis.js";
+
+// Redis 연결 보장
+await initRedis();
 
 const router = express.Router();
 
@@ -19,9 +22,11 @@ router.post('/', async (req, res) => {
     );
     // Cache delete: 장바구니에 변경이 발생했으므로 해당 사용자의 장바구니 캐시 무효화
     try {
-      await redis.del(`carts:${user_id}`);
+      const cacheKey = `carts:${user_id}`;
+      await redisClient.del(cacheKey);
+      console.log(`CACHE DELETE (${cacheKey})`);
     } catch (redisErr) {
-      console.error('Redis error on carts cache delete after add:', redisErr);
+      console.error('Redis DEL error (carts cache delete after add):', redisErr);
     }
 
     return res.json({ success: true, message: 'ITEM_ADDED_TO_CART' });
@@ -39,14 +44,15 @@ router.get('/user/:userId', async (req, res) => {
 
     // Cache get: 해당 사용자의 장바구니 캐시 확인
     try {
-      const cached = await redis.get(cacheKey);
+      const cached = await redisClient.get(cacheKey);
       if (cached) {
-        // Cache hit: Redis에 저장된 장바구니 아이템 반환
-        const items = JSON.parse(cached);
-        return res.json({ success: true, items });
+        console.log(`CACHE HIT (${cacheKey})`);
+        // Cache hit: 캐싱된 전체 응답 반환
+        return res.json(JSON.parse(cached));
       }
+      console.log(`CACHE MISS (${cacheKey})`);
     } catch (redisErr) {
-      console.error('Redis error on carts cache get:', redisErr);
+      console.error(`Redis GET error (${cacheKey}):`, redisErr);
     }
 
     // Cache miss: DB에서 장바구니 조회
@@ -55,14 +61,17 @@ router.get('/user/:userId', async (req, res) => {
       [userId]
     );
 
-    // Cache set: 조회 결과를 Redis에 캐싱 (TTL = 120초)
+    const result = { success: true, items: rows || [] };
+
+    // Cache set: 조회 결과를 Redis에 캐싱 (TTL = 60초)
     try {
-      await redis.set(cacheKey, JSON.stringify(rows || []), { EX: 120 });
+      await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 });
+      console.log(`CACHE SET (${cacheKey})`);
     } catch (redisErr) {
-      console.error('Redis error on carts cache set:', redisErr);
+      console.error(`Redis SET error (${cacheKey}):`, redisErr);
     }
 
-    return res.json({ success: true, items: rows || [] });
+    return res.json(result);
   } catch (err) {
     console.error('GET CART ERROR:', err);
     return res.status(500).json({ success: false, message: 'SERVER_ERROR', error: err.message });
@@ -90,9 +99,11 @@ router.put('/:userId/:productId', async (req, res) => {
 
     // Cache delete: 장바구니 수량이 변경되었으므로 해당 사용자의 장바구니 캐시 무효화
     try {
-      await redis.del(`carts:${userId}`);
+      const cacheKey = `carts:${userId}`;
+      await redisClient.del(cacheKey);
+      console.log(`CACHE DELETE (${cacheKey})`);
     } catch (redisErr) {
-      console.error('Redis error on carts cache delete after update:', redisErr);
+      console.error('Redis DEL error (carts cache delete after update):', redisErr);
     }
 
     return res.json({ success: true, message: 'QUANTITY_UPDATED' });
@@ -118,9 +129,11 @@ router.delete('/:userId/:productId', async (req, res) => {
 
     // Cache delete: 장바구니에서 상품이 제거되었으므로 해당 사용자의 장바구니 캐시 무효화
     try {
-      await redis.del(`carts:${userId}`);
+      const cacheKey = `carts:${userId}`;
+      await redisClient.del(cacheKey);
+      console.log(`CACHE DELETE (${cacheKey})`);
     } catch (redisErr) {
-      console.error('Redis error on carts cache delete after remove:', redisErr);
+      console.error('Redis DEL error (carts cache delete after remove):', redisErr);
     }
 
     return res.json({ success: true, message: 'ITEM_REMOVED_FROM_CART' });
@@ -142,9 +155,11 @@ router.delete('/user/:userId/clear', async (req, res) => {
 
     // Cache delete: 장바구니가 전체 비워졌으므로 해당 사용자의 장바구니 캐시 무효화
     try {
-      await redis.del(`carts:${userId}`);
+      const cacheKey = `carts:${userId}`;
+      await redisClient.del(cacheKey);
+      console.log(`CACHE DELETE (${cacheKey})`);
     } catch (redisErr) {
-      console.error('Redis error on carts cache delete after clear:', redisErr);
+      console.error('Redis DEL error (carts cache delete after clear):', redisErr);
     }
 
     return res.json({ success: true, message: 'CART_CLEARED', deleted_count: result.affectedRows });

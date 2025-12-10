@@ -7,9 +7,6 @@ import { initRedis } from './config/redis.js';
 dotenv.config();
 
 const app = express();
-
-// Redis 초기화 (비동기, 실패해도 앱은 계속 동작)
-initRedis();
 // 1️⃣ CORS 미들웨어 (기본 허용)
 app.use(cors({
   origin: "*",   // S3 도메인 포함 전체 허용
@@ -38,4 +35,7 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3004;
+
+// Redis 연결이 보장된 이후에만 서버가 시작되도록 처리
+await initRedis();
 app.listen(PORT, () => console.log(`cart-api listening on ${PORT}`));

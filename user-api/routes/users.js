@@ -2,7 +2,10 @@ import express from "express";
 import bcryptjs from "bcryptjs";
 import { db } from "../../shared/db.js";
 import { generateToken } from "../../shared/auth.js";
-import redis from "../config/redis.js";
+import redisClient, { initRedis } from "../config/redis.js";
+
+// Redis 연결 보장
+await initRedis();
 
 const router = express.Router();
 
@@ -29,9 +32,11 @@ router.post("/register", async (req, res) => {
         // Cache delete: 유저가 새로 생성되었으므로 전체 유저 목록 캐시 무효화
         try {
             // Cache delete: users:all
-            await redis.del("users:all");
+            const cacheKey = "users:all";
+            await redisClient.del(cacheKey);
+            console.log(`CACHE DELETE (${cacheKey})`);
         } catch (redisErr) {
-            console.error("Redis error on users:all cache delete after register:", redisErr);
+            console.error("Redis DEL error (users:all):", redisErr);
         }
 
         return res.status(201).json({ success: true, message: "REGISTERED_SUCCESSFULLY", user: { user_id: result.insertId, email, name, role: 'customer' } });
@@ -55,10 +60,10 @@ router.post("/login", async (req, res) => {
             try {
                 const ip = req.ip || req.connection?.remoteAddress || "unknown";
                 const key = `login_attempt:${ip}`;
-                const count = await redis.incr(key);
+                const count = await redisClient.incr(key);
                 // 5분 TTL 설정
                 if (count === 1) {
-                    await redis.expire(key, 300);
+                    await redisClient.expire(key, 300);
                 }
             } catch (redisErr) {
                 console.error("Redis error on login attempt tracking:", redisErr);
@@ -71,7 +76,7 @@ router.post("/login", async (req, res) => {
         try {
             const refreshTokenKey = `refresh:${user.user_id}`;
             const refreshToken = generateToken(user, { type: "refresh" });
-            await redis.set(refreshTokenKey, refreshToken, { EX: 60 * 60 * 24 * 7 }); // 7일 TTL
+            await redisClient.set(refreshTokenKey, refreshToken, { EX: 60 * 60 * 24 * 7 }); // 7일 TTL
         } catch (redisErr) {
             console.error("Redis error on refresh token store:", redisErr);
         }
@@ -108,27 +113,30 @@ router.get("/", async (req, res) => {
 
         // Cache get: 전체 유저 목록 캐시 확인
         try {
-            const cached = await redis.get(cacheKey);
+            const cached = await redisClient.get(cacheKey);
             if (cached) {
-                // Cache hit: Redis에서 전체 유저 목록 반환
-                const users = JSON.parse(cached);
-                return res.json({ success: true, users });
+                console.log(`CACHE HIT (${cacheKey})`);
+                // Cache hit: 캐싱된 전체 응답 반환
+                return res.json(JSON.parse(cached));
             }
+            console.log(`CACHE MISS (${cacheKey})`);
         } catch (redisErr) {
-            console.error("Redis error on users:all cache get:", redisErr);
+            console.error(`Redis GET error (${cacheKey}):`, redisErr);
         }
 
         // Cache miss: DB에서 유저 목록 조회
         const [rows] = await db.query(`SELECT user_id, email, name, phone, role, is_active, email_verified, created_at, last_login FROM users ORDER BY created_at DESC`);
+        const result = { success: true, users: rows };
 
         // Cache set: 조회 결과를 Redis에 캐싱 (TTL = 60초)
         try {
-            await redis.set(cacheKey, JSON.stringify(rows || []), { EX: 60 });
+            await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 });
+            console.log(`CACHE SET (${cacheKey})`);
         } catch (redisErr) {
-            console.error("Redis error on users:all cache set:", redisErr);
+            console.error(`Redis SET error (${cacheKey}):`, redisErr);
         }
 
-        return res.json({ success: true, users: rows });
+        return res.json(result);
     } catch (err) {
         console.error("GET USERS ERROR:", err);
         return res.status(500).json({ success: false, message: "SERVER_ERROR", error: err.message });
@@ -142,14 +150,15 @@ router.get("/:userId", async (req, res) => {
 
         // Cache get: 특정 유저 캐시 확인
         try {
-            const cached = await redis.get(cacheKey);
+            const cached = await redisClient.get(cacheKey);
             if (cached) {
-                // Cache hit: Redis에서 유저 정보 반환
-                const user = JSON.parse(cached);
-                return res.json({ success: true, user });
+                console.log(`CACHE HIT (${cacheKey})`);
+                // Cache hit: 캐싱된 전체 응답 반환
+                return res.json(JSON.parse(cached));
             }
+            console.log(`CACHE MISS (${cacheKey})`);
         } catch (redisErr) {
-            console.error("Redis error on users:{id} cache get:", redisErr);
+            console.error(`Redis GET error (${cacheKey}):`, redisErr);
         }
 
         // Cache miss: DB에서 유저 조회
@@ -157,15 +166,17 @@ router.get("/:userId", async (req, res) => {
         if (rows.length === 0) return res.status(404).json({ success: false, message: "USER_NOT_FOUND" });
 
         const user = rows[0];
+        const result = { success: true, user };
 
         // Cache set: 단건 유저 정보를 Redis에 캐싱 (TTL = 300초)
         try {
-            await redis.set(cacheKey, JSON.stringify(user), { EX: 300 });
+            await redisClient.set(cacheKey, JSON.stringify(result), { EX: 300 });
+            console.log(`CACHE SET (${cacheKey})`);
         } catch (redisErr) {
-            console.error("Redis error on users:{id} cache set:", redisErr);
+            console.error(`Redis SET error (${cacheKey}):`, redisErr);
         }
 
-        return res.json({ success: true, user });
+        return res.json(result);
     } catch (err) {
         console.error("GET USER ERROR:", err);
         return res.status(500).json({ success: false, message: "SERVER_ERROR", error: err.message });
