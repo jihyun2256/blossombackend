@@ -6,7 +6,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 const s3 = new S3Client({ region: "ap-northeast-2" });
-const S3_BUCKET = "sb3-u4-eks-test";
+const S3_BUCKET = "sb3-u1-web-bucket";
 const S3_FOLDER = "images";
 
 router.get('/', async (req, res) => {
