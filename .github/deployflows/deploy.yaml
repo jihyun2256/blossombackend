@@ -18,7 +18,7 @@ jobs:
         product-api sb3-u2-blossom/product-api
         order-api sb3-u2-blossom/order-api
         cart-api sb3-u2-blossom/cart-api
-        payment sb3-u2-blossom/payments-api
+        payment sb3-u2-blossom/payment-api
         lex-api sb3-u2-blossom/lex-api
 
     steps:
