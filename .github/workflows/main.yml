@@ -1,0 +1,94 @@
+name: Build and Push All Backend Services to ECR
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "**"
+      - ".github/workflows/**"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-northeast-3
+      ECR_REGISTRY: 337112169365.dkr.ecr.ap-northeast-3.amazonaws.com
+      SERVICES: |
+        user-api sb3-u2-blossom/user-api
+        product-api sb3-u2-blossom/product-api
+        order-api sb3-u2-blossom/order-api
+        cart-api sb3-u2-blossom/cart-api
+        payment-api sb3-u2-blossom/payment-api
+        lex-api sb3-u2-blossom/lex-api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & Push all microservices images
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          while read folder repo; do
+            echo "========================================"
+            echo "Building service: $folder → Repo: $repo"
+            echo "========================================"
+
+            if [ ! -f "$folder/Dockerfile" ]; then
+              echo "❌ Dockerfile not found in $folder — skipping"
+              continue
+            fi
+
+            IMAGE_TAG="${REGISTRY}/${repo}:${GITHUB_SHA}"
+
+            # Build from root, using each service's Dockerfile
+            docker build -f "${folder}/Dockerfile" -t "${repo}:${GITHUB_SHA}" .
+
+            docker tag ${repo}:${GITHUB_SHA} ${IMAGE_TAG}
+            docker push ${IMAGE_TAG}
+
+            echo "✔ Successfully pushed: ${IMAGE_TAG}"
+            echo ""
+          done <<< "$SERVICES"
+
+      - name: Update image tag in manifests repository
+        run: |
+          echo "=== Cloning manifests repo ==="
+          git clone https://github.com/jihyun2256/blossommanifest.git manifests
+          cd manifests
+          
+          while read folder repo; do
+            echo "-------------------------------------------"
+            echo "Updating manifest for service: $folder ($repo)"
+            echo "-------------------------------------------"
+
+            YAML_FILE="${folder}.yaml"
+            if [ "$folder" = "payment-api" ]; then
+              YAML_FILE="payments-api.yaml"
+            fi
+
+            if [ ! -f "$YAML_FILE" ]; then
+              echo "❌ Manifest file not found: $YAML_FILE — skipping"
+              continue
+            fi
+
+            NEW_IMAGE="${ECR_REGISTRY}/${repo}:${GITHUB_SHA}"
+            sed -i "s|image: .*|image: ${NEW_IMAGE}|g" "$YAML_FILE"
+          done <<< "$SERVICES"
+
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add .
+          git commit -m "Update image tags to ${GITHUB_SHA}"
+          git push
