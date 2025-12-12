@@ -69,7 +69,8 @@ jobs:
           git clone https://github.com/jihyun2256/blossommanifest.git manifests
           cd manifests
 
-          while read folder repo; do
+          while IFS=' ' read -r folder repo; do
+            # 빈 줄 방어
             [ -z "$folder" ] && continue
             [ -z "$repo" ] && continue
 
@@ -88,7 +89,7 @@ jobs:
             NEW_IMAGE="${ECR_REGISTRY}/${repo}:${GITHUB_SHA}"
             echo "✔ New image: ${NEW_IMAGE}"
 
-            # service 디렉토리 안의 모든 yaml 중 image 필드 치환
+            # 서비스 디렉토리 안 모든 yaml 중 image 있는 것만 치환
             find "$SERVICE_DIR" -name "*.yaml" -type f | while read yaml; do
               if grep -q "image:" "$yaml"; then
                 echo "✔ Updating image in $yaml"
@@ -106,5 +107,7 @@ jobs:
             git commit -m "Update image tags to ${GITHUB_SHA}"
             git push
           else
+            echo "No changes to commit"
+          fi
             echo "No changes to commit"
           fi
