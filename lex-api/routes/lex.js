@@ -129,7 +129,7 @@ async function getProductsByBudget(budgetStr, category) {
     let budget = parseFloat(budgetStr);
     
     // "50만원" 같은 형식 처리
-    if (budgetStr && budgetStr.includes("만")) {
+    if (typeof budgetStr === 'string' && budgetStr.includes("만")) {
       const num = parseFloat(budgetStr.replace(/[^0-9.]/g, ""));
       budget = num * 10000;
     }
@@ -151,8 +151,11 @@ async function getProductsByBudget(budgetStr, category) {
     console.log(`✅ ${products.length}개 상품 조회 완료`);
 
     return products;
+
+    return products || [];
   } catch (error) {
     console.error("❌ 상품 조회 오류:", error);
+    console.error("❌ 에러 스택:", error.stack);
     return [];
   }
 }
@@ -448,6 +451,57 @@ router.get("/health", async (req, res) => {
       region: process.env.AWS_REGION || "ap-northeast-2",
     },
   });
+});
+
+/**
+ * 디버깅: 모든 상품 조회
+ * GET /lex/debug/all-products
+ */
+router.get("/debug/all-products", async (req, res) => {
+  try {
+    console.log("🔍 디버깅: 모든 상품 조회");
+    
+    const [products] = await db.query("SELECT * FROM products");
+    
+    return res.json({
+      success: true,
+      total: products.length,
+      products: products,
+    });
+  } catch (error) {
+    console.error("❌ 디버깅 오류:", error);
+    return res.status(500).json({
+      success: false,
+      message: "디버깅 조회 실패",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * 디버깅: 카테고리별 상품 수
+ * GET /lex/debug/category-count
+ */
+router.get("/debug/category-count", async (req, res) => {
+  try {
+    console.log("🔍 디버깅: 카테고리별 상품 수");
+    
+    const [categories] = await db.query(
+      "SELECT category, COUNT(*) as count FROM products GROUP BY category"
+    );
+    
+    return res.json({
+      success: true,
+      categories: categories,
+    });
+  } catch (error) {
+    console.error("❌ 디버깅 오류:", error);
+    return res.status(500).json({
+      success: false,
+      message: "디버깅 조회 실패",
+      error: error.message,
+    });
+  }
 });
 
 export default router;
