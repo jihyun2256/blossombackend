@@ -10,19 +10,16 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     env:
-      AWS_REGION: ap-northeast-2
-      ECR_REGISTRY: 337112169365.dkr.ecr.ap-northeast-2.amazonaws.com
-
-      # 폴더명 → ECR repo 이름 (lex-api 포함)
+      AWS_REGION: ap-northeast-3
+      ECR_REGISTRY: 337112169365.dkr.ecr.ap-northeast-3.amazonaws.com
       SERVICES: |
-        user-api blossom-user-api
-        product-api blossom-product-api
-        order-api blossom-order-api
-        cart-api blossom-cart-api
-        payment blossom-payments-api
-        lex-api blossom-lex-api
+        user-api sb3-u2-blossom/user-api
+        product-api sb3-u2-blossom/product-api
+        order-api sb3-u2-blossom/order-api
+        cart-api sb3-u2-blossom/cart-api
+        payment sb3-u2-blossom/payments-api
+        lex-api sb3-u2-blossom/lex-api
 
     steps:
       - name: Checkout repository
@@ -36,80 +33,69 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # =============================================
-      # 서비스별 Docker build → tag → ECR push 반복
-      # =============================================
       - name: Build & Push all microservices images
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           while read folder repo; do
             echo "========================================"
             echo "Building service: $folder → Repo: $repo"
             echo "========================================"
-
-            # 서비스 폴더 존재 여부 확인
+            
             if [ ! -d "./$folder" ]; then
               echo "❌ Folder not found: $folder — skipping"
               continue
             fi
-
-            IMAGE_TAG="${ECR_REGISTRY}/${repo}:${GITHUB_SHA}"
-
+            
+            IMAGE_TAG="${REGISTRY}/${repo}:${GITHUB_SHA}"
+            
             # Build
             docker build -t ${repo}:${GITHUB_SHA} "./${folder}"
-
+            
             # Tag
             docker tag ${repo}:${GITHUB_SHA} ${IMAGE_TAG}
-
+            
             # Push
             docker push ${IMAGE_TAG}
-
+            
             echo "✔ Successfully pushed: ${IMAGE_TAG}"
-            echo
+            echo ""
           done <<< "$SERVICES"
 
       - name: Update image tag in manifests repository
         run: |
-          echo "=== Cloning manifests repo (B repo) ==="
+          echo "=== Cloning manifests repo ==="
           git clone https://github.com/jihyun2256/blossommanifest.git manifests
           cd manifests
-
-          # 서비스별 매핑 (A repo에서 사용한 SERVICES 배열과 동일하게 사용)
+          
           while read folder repo; do
             echo "-------------------------------------------"
             echo "Updating manifest for service: $folder ($repo)"
             echo "-------------------------------------------"
-
-            # B repo 파일 이름 규칙: <서비스명>-api.yaml
-            # payment 폴더 → payments-api.yaml (예외 처리)
+            
             if [ "$folder" = "payment" ]; then
               YAML_FILE="payments-api.yaml"
             else
               YAML_FILE="${folder}.yaml"
             fi
-
+            
             if [ ! -f "$YAML_FILE" ]; then
               echo "❌ Manifest file not found: $YAML_FILE — skipping"
               continue
             fi
-
+            
             NEW_IMAGE="${ECR_REGISTRY}/${repo}:${GITHUB_SHA}"
-
             echo "✔ New image tag: $NEW_IMAGE"
             echo "✔ Updating file: $YAML_FILE"
-
-            # YAML 내부 image: 값 업데이트
+            
             sed -i "s|image: .*|image: ${NEW_IMAGE}|g" "$YAML_FILE"
-
           done <<< "$SERVICES"
-
+          
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-
           git add .
           git commit -m "Update image tags to ${GITHUB_SHA}"
           git push
-
-
-
