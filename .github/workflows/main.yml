@@ -61,7 +61,6 @@ jobs:
           set -e
 
           while IFS=' ' read -r folder repo; do
-            # 빈 줄 방어
             [ -z "$folder" ] && continue
             [ -z "$repo" ] && continue
 
@@ -70,13 +69,14 @@ jobs:
             echo "========================================"
 
             if [ ! -f "./${folder}/Dockerfile" ]; then
-              echo "❌ Dockerfile not found in ./${folder} — skipping"
+              echo "❌ Dockerfile not found: ./${folder}/Dockerfile — skipping"
               continue
             fi
 
             IMAGE_TAG="${REGISTRY}/${repo}:${GITHUB_SHA}"
 
-            docker build -t "${IMAGE_TAG}" "./${folder}"
+            # ⭐ 핵심 수정 포인트
+            docker build -f "${folder}/Dockerfile" -t "${IMAGE_TAG}" .
             docker push "${IMAGE_TAG}"
 
             echo "✔ Successfully pushed: ${IMAGE_TAG}"
