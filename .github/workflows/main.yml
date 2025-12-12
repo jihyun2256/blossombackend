@@ -74,7 +74,7 @@ jobs:
             [ -z "$folder" ] && continue
             [ -z "$repo" ] && continue
 
-            SERVICE_DIR="apps/${folder}"
+            SERVICE_DIR="apps/apps/${folder}"
 
             echo "-------------------------------------------"
             echo "Updating manifest for service: ${folder}"
@@ -89,8 +89,8 @@ jobs:
             NEW_IMAGE="${ECR_REGISTRY}/${repo}:${GITHUB_SHA}"
             echo "✔ New image: ${NEW_IMAGE}"
 
-            # 서비스 디렉토리 안 모든 yaml 중 image 있는 것만 치환
-            find "$SERVICE_DIR" -name "*.yaml" -type f | while read yaml; do
+            for yaml in ${SERVICE_DIR}/*.yaml; do
+              [ -f "$yaml" ] || continue
               if grep -q "image:" "$yaml"; then
                 echo "✔ Updating image in $yaml"
                 sed -i "s|image: .*|image: ${NEW_IMAGE}|g" "$yaml"
@@ -107,7 +107,5 @@ jobs:
             git commit -m "Update image tags to ${GITHUB_SHA}"
             git push
           else
-            echo "No changes to commit"
-          fi
             echo "No changes to commit"
           fi
