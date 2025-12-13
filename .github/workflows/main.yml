@@ -113,7 +113,7 @@ jobs:
               continue
             fi
 
-            NEW_IMAGE="${ECR_REGISTRY}/${repo}:${GITHUB_SHA}"
+            NEW_IMAGE="${ECR_REGISTRY}/${repo}:latest"
             echo "✔ New image: ${NEW_IMAGE}"
 
             for yaml in ${SERVICE_DIR}/*.yaml; do
