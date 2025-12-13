@@ -88,12 +88,12 @@ jobs:
       # ------------------------------------------------------------
       - name: Update image tag in manifests repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          blossommanifestToken: ${{ secrets.blossommanifestToken }}
         run: |
           set -e
           echo "=== Cloning manifests repo ==="
 
-          git clone https://x-access-token:${GITHUB_TOKEN}@github.com/jihyun2256/blossommanifest.git manifests
+          git clone https://x-access-token:${blossommanifestToken}@github.com/jihyun2256/blossommanifest.git manifests
           cd manifests
 
           while IFS=' ' read -r folder repo; do
