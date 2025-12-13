@@ -73,7 +73,7 @@ jobs:
               continue
             fi
 
-            IMAGE_TAG="${REGISTRY}/${repo}:${GITHUB_SHA}"
+            IMAGE_TAG="${REGISTRY}/${repo}:lastest"
 
             # ⭐ 핵심 수정 포인트
             docker build -f "${folder}/Dockerfile" -t "${IMAGE_TAG}" .
