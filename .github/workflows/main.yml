@@ -101,7 +101,7 @@ jobs:
             [ -z "$folder" ] && continue
             [ -z "$repo" ] && continue
 
-            SERVICE_DIR="apps/apps/${folder}"
+            SERVICE_DIR="apps/${folder}"
 
             echo "-------------------------------------------"
             echo "Updating manifest for service: ${folder}"
