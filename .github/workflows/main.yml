@@ -73,7 +73,7 @@ jobs:
               continue
             fi
 
-            IMAGE_TAG="${REGISTRY}/${repo}:lastest"
+            IMAGE_TAG="${REGISTRY}/${repo}:latest"
 
             # ⭐ 핵심 수정 포인트
             docker build -f "${folder}/Dockerfile" -t "${IMAGE_TAG}" .
