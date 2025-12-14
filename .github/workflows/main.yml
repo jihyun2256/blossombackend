@@ -13,7 +13,6 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     env:
       AWS_REGION: ap-northeast-3
       ECR_REGISTRY: 337112169365.dkr.ecr.ap-northeast-3.amazonaws.com
@@ -26,17 +25,17 @@ jobs:
         lex-api sb3-u2-blossom/lex-api
 
     steps:
-      # ------------------------------------------------------------
+      # ============================================================
       # 1️⃣ Backend repo checkout
-      # ------------------------------------------------------------
+      # ============================================================
       - name: Checkout backend repository
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ------------------------------------------------------------
+      # ============================================================
       # 2️⃣ AWS 인증
-      # ------------------------------------------------------------
+      # ============================================================
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -44,78 +43,82 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # ------------------------------------------------------------
+      # ============================================================
       # 3️⃣ ECR 로그인
-      # ------------------------------------------------------------
+      # ============================================================
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # ------------------------------------------------------------
+      # ============================================================
       # 4️⃣ Docker build & ECR push
-      # ------------------------------------------------------------
+      # ============================================================
       - name: Build & Push all microservices images
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           set -e
-
           while IFS=' ' read -r folder repo; do
             [ -z "$folder" ] && continue
             [ -z "$repo" ] && continue
-
+            
             echo "========================================"
             echo "Building service: $folder → Repo: $repo"
             echo "========================================"
-
+            
             if [ ! -f "./${folder}/Dockerfile" ]; then
               echo "❌ Dockerfile not found: ./${folder}/Dockerfile — skipping"
               continue
             fi
-
+            
             IMAGE_TAG="${REGISTRY}/${repo}:latest"
-
+            
             # ⭐ 핵심 수정 포인트
             docker build -f "${folder}/Dockerfile" -t "${IMAGE_TAG}" .
             docker push "${IMAGE_TAG}"
-
+            
             echo "✔ Successfully pushed: ${IMAGE_TAG}"
             echo ""
           done <<< "$SERVICES"
 
-      # ------------------------------------------------------------
+      # ============================================================
       # 5️⃣ manifests repo 이미지 태그 업데이트 + push
-      # ------------------------------------------------------------
+      # ============================================================
+      # ⭐ C 방법: Ingress는 Terraform에서 관리하므로
+      #    여기서는 이미지 태그만 업데이트
+      # ============================================================
       - name: Update image tag in manifests repository
         env:
           blossommanifestToken: ${{ secrets.blossommanifestToken }}
         run: |
           set -e
           echo "=== Cloning manifests repo ==="
-
           git clone https://x-access-token:${blossommanifestToken}@github.com/jihyun2256/blossommanifest.git manifests
           cd manifests
-
+          
+          # ============================================================
+          # 5-1️⃣ 앱 이미지 태그 업데이트 (apps 폴더)
+          # ============================================================
+          echo "=== Updating app image tags ==="
           while IFS=' ' read -r folder repo; do
             # 빈 줄 방어
             [ -z "$folder" ] && continue
             [ -z "$repo" ] && continue
-
+            
             SERVICE_DIR="apps"
-
             echo "-------------------------------------------"
             echo "Updating manifest for service: ${folder}"
             echo "Directory: ${SERVICE_DIR}"
             echo "-------------------------------------------"
-
+            
             if [ ! -d "$SERVICE_DIR" ]; then
               echo "❌ Directory not found: ${SERVICE_DIR} — skipping"
               continue
             fi
-
+            
             NEW_IMAGE="${ECR_REGISTRY}/${repo}:latest"
             echo "✔ New image: ${NEW_IMAGE}"
-
+            
             for yaml in ${SERVICE_DIR}/*.yaml; do
               [ -f "$yaml" ] || continue
               if grep -q "image:" "$yaml"; then
@@ -123,16 +126,36 @@ jobs:
                 sed -i "s|image: .*|image: ${NEW_IMAGE}|g" "$yaml"
               fi
             done
-
           done <<< "$SERVICES"
-
+          
+          # ============================================================
+          # 5-2️⃣ Ingress는 Terraform에서 관리됨
+          # ============================================================
+          # ⭐ C 방법 설명:
+          # - Ingress YAML은 Deploy Repo의 ingress/ 폴더에 Helm chart로 존재
+          # - ACM ARN과 Domain은 Terraform에서 ArgoCD Application에 주입
+          # - GitHub Actions에서는 Ingress를 수정하지 않음
+          # - ArgoCD가 Helm values를 렌더링하여 배포
+          # ============================================================
+          echo ""
+          echo "=== Ingress 관리 방식 ==="
+          echo "✔ Ingress는 Terraform에서 관리됨"
+          echo "✔ ACM ARN: Terraform → ArgoCD Application → Helm values"
+          echo "✔ Domain: Terraform → ArgoCD Application → Helm values"
+          echo "✔ GitHub Actions: 이미지 태그만 업데이트"
+          echo ""
+          
+          # ============================================================
+          # 5-3️⃣ Git commit & push
+          # ============================================================
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-
+          
           if git status --porcelain | grep .; then
             git add .
             git commit -m "Update image tags to ${GITHUB_SHA}"
             git push
+            echo "✔ Successfully pushed to manifests repo"
           else
-            echo "No changes to commit"
+            echo "ℹ️ No changes to commit"
           fi
