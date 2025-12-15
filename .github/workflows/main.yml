@@ -14,7 +14,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: ap-northeast-3
+      AWS_REGION: us-east-1
       ECR_REGISTRY: 337112169365.dkr.ecr.us-east-1.amazonaws.com
       SERVICES: |
         user-api sb3-u2-blossom/user-api
