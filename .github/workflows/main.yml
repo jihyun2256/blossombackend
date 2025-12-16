@@ -7,6 +7,11 @@ on:
       - "**"
       - ".github/workflows/**"
 
+  # ⭐ Terraform 트리거 추가
+  repository_dispatch:
+    types: [infra-ready]
+
+
 permissions:
   contents: write   # ⭐ manifests repo에 push 하기 위해 필수
 
