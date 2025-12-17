@@ -7,7 +7,8 @@
 import {
   checkIdempotencyKey,
   getIdempotencyResult,
-  validateRequestData
+  validateRequestData,
+  storeIdempotencyKey
 } from '../services/idempotencyService.js';
 import { logInfo, logError } from '../utils/logger.js';
 
@@ -100,8 +101,6 @@ async function checkIdempotency(req, res, next) {
  */
 async function storeIdempotencyResponse(idempotencyKey, requestData, responseData) {
   try {
-    const { storeIdempotencyKey } = require('../services/idempotencyService');
-    
     await storeIdempotencyKey(idempotencyKey, requestData, responseData);
     
     logInfo('Idempotency response stored', {
