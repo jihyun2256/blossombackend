@@ -7,12 +7,11 @@ on:
       - "**"
       - ".github/workflows/**"
 
-  # ⭐ Terraform 완료 후 트리거
   repository_dispatch:
     types: [infra-ready]
 
 permissions:
-  contents: write   # ⭐ manifests repo push용
+  contents: write
 
 jobs:
   build-and-push:
@@ -23,7 +22,7 @@ jobs:
       ECR_REGISTRY: 337112169365.dkr.ecr.us-east-1.amazonaws.com
       IMAGE_TAG: ${{ github.sha }}
 
-      # 형식: <yaml 파일명> <ECR repo suffix>
+      # 형식: <manifest yaml 이름> <backend 폴더 & ecr suffix>
       SERVICES: |
         user user-api
         products product-api
@@ -38,8 +37,6 @@ jobs:
       # ============================================================
       - name: Checkout backend repository
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       # ============================================================
       # 2️⃣ AWS 인증
@@ -59,7 +56,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       # ============================================================
-      # 4️⃣ Docker build & ECR push (서비스별 SHA 태그)
+      # 4️⃣ Docker build & ECR push
       # ============================================================
       - name: Build & Push all microservices images
         env:
@@ -71,7 +68,7 @@ jobs:
             [ -z "$name" ] && continue
             [ -z "$repo" ] && continue
 
-            SERVICE_DIR="${repo}-api"
+            SERVICE_DIR="${repo}"
 
             echo "========================================"
             echo "Building service: ${SERVICE_DIR}"
@@ -93,7 +90,7 @@ jobs:
           done <<< "$SERVICES"
 
       # ============================================================
-      # 5️⃣ manifests repo 이미지 태그 업데이트 (🔥 수정 완료)
+      # 5️⃣ manifests repo 이미지 태그 업데이트
       # ============================================================
       - name: Update image tag in manifests repository
         env:
@@ -101,11 +98,8 @@ jobs:
         run: |
           set -e
 
-          echo "=== Clone manifests repository ==="
           git clone https://x-access-token:${MANIFEST_TOKEN}@github.com/jihyun2256/blossommanifest.git manifests
           cd manifests
-
-          echo "=== Update deployment image tags (yaml 기준) ==="
 
           while IFS=' ' read -r name repo; do
             [ -z "$name" ] && continue
@@ -120,15 +114,10 @@ jobs:
             fi
 
             echo "▶ Updating ${YAML_FILE}"
-            echo "   image: ${NEW_IMAGE}"
-
-            sed -i "s|image: .*|image: ${NEW_IMAGE}|g" "${YAML_FILE}"
+            sed -i "/image:/c\        image: ${NEW_IMAGE}" "${YAML_FILE}"
 
           done <<< "$SERVICES"
 
-          # ============================================================
-          # 6️⃣ Git commit & push
-          # ============================================================
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
 
@@ -136,7 +125,6 @@ jobs:
             git add apps/*.yaml
             git commit -m "chore: update image tags to ${IMAGE_TAG}"
             git push origin main
-            echo "✔ manifests repo updated"
           else
             echo "ℹ️ No changes detected"
           fi
