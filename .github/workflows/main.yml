@@ -23,6 +23,7 @@ jobs:
       ECR_REGISTRY: 337112169365.dkr.ecr.us-east-1.amazonaws.com
       IMAGE_TAG: ${{ github.sha }}
 
+      # 형식: <서비스폴더명> <ECR repo 경로>
       SERVICES: |
         user-api sb3-u2-blossom/user-api
         product-api sb3-u2-blossom/product-api
@@ -58,14 +59,13 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       # ============================================================
-      # 4️⃣ Docker build & ECR push (SHA 태그)
+      # 4️⃣ Docker build & ECR push (서비스별 SHA 태그)
       # ============================================================
       - name: Build & Push all microservices images
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           set -e
-
           while IFS=' ' read -r folder repo; do
             [ -z "$folder" ] && continue
             [ -z "$repo" ] && continue
@@ -90,7 +90,7 @@ jobs:
           done <<< "$SERVICES"
 
       # ============================================================
-      # 5️⃣ manifests repo 이미지 태그 업데이트
+      # 5️⃣ manifests repo 이미지 태그 업데이트 (🔥 핵심 수정)
       # ============================================================
       - name: Update image tag in manifests repository
         env:
@@ -102,22 +102,24 @@ jobs:
           git clone https://x-access-token:${MANIFEST_TOKEN}@github.com/jihyun2256/blossommanifest.git manifests
           cd manifests
 
-          echo "=== Update deployment image tags ==="
+          echo "=== Update deployment image tags (service-specific) ==="
 
           while IFS=' ' read -r folder repo; do
             [ -z "$folder" ] && continue
             [ -z "$repo" ] && continue
 
+            YAML_FILE="apps/${folder}.yaml"
             NEW_IMAGE="${ECR_REGISTRY}/${repo}:${IMAGE_TAG}"
-            echo "▶ Applying image: ${NEW_IMAGE}"
 
-            for yaml in apps/*.yaml; do
-              [ -f "$yaml" ] || continue
-              if grep -q "image:" "$yaml"; then
-                sed -i "s|image: .*|image: ${NEW_IMAGE}|g" "$yaml"
-                echo "✔ Updated: $yaml"
-              fi
-            done
+            if [ ! -f "$YAML_FILE" ]; then
+              echo "❌ ${YAML_FILE} not found — skipping"
+              continue
+            fi
+
+            echo "▶ Updating ${YAML_FILE}"
+            echo "   image: ${NEW_IMAGE}"
+
+            sed -i "s|image: .*|image: ${NEW_IMAGE}|g" "${YAML_FILE}"
           done <<< "$SERVICES"
 
           # ============================================================
@@ -127,7 +129,7 @@ jobs:
           git config user.name "GitHub Actions"
 
           if git status --porcelain | grep .; then
-            git add .
+            git add apps/*.yaml
             git commit -m "chore: update image tags to ${IMAGE_TAG}"
             git push origin main
             echo "✔ manifests repo updated"
