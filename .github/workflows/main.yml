@@ -25,12 +25,12 @@ jobs:
 
       # 형식: <yaml 파일명> <ECR repo suffix>
       SERVICES: |
-        user user
-        products products
-        orders orders
-        carts carts
-        payment payment
-        lex lex
+        user user-api
+        products product-api
+        orders order-api
+        carts cart-api
+        payment payment-api
+        lex lex-api
 
     steps:
       # ============================================================
