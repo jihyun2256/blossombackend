@@ -22,13 +22,13 @@ jobs:
       ECR_REGISTRY: 337112169365.dkr.ecr.us-east-1.amazonaws.com
       IMAGE_TAG: ${{ github.sha }}
 
-      # 형식: <manifest yaml 이름> <backend 폴더 & ecr suffix>
+      # 형식: <manifest 파일명> <backend 디렉터리 & ecr suffix>
       SERVICES: |
-        user user-api
+        users user-api
         products product-api
         orders order-api
         carts cart-api
-        payment payment-api
+        payments payment-api
         lex lex-api
 
     steps:
@@ -63,26 +63,23 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           set -e
-
-          while IFS=' ' read -r name repo; do
-            [ -z "$name" ] && continue
+          while IFS=' ' read -r manifest repo; do
+            [ -z "$manifest" ] && continue
             [ -z "$repo" ] && continue
 
-            SERVICE_DIR="${repo}"
-
             echo "========================================"
-            echo "Building service: ${SERVICE_DIR}"
+            echo "Building service: ${repo}"
             echo "Image tag: ${IMAGE_TAG}"
             echo "========================================"
 
-            if [ ! -f "./${SERVICE_DIR}/Dockerfile" ]; then
-              echo "❌ Dockerfile not found: ./${SERVICE_DIR}/Dockerfile — skipping"
+            if [ ! -f "./${repo}/Dockerfile" ]; then
+              echo "❌ Dockerfile not found: ./${repo}/Dockerfile — skipping"
               continue
             fi
 
             IMAGE_URI="${REGISTRY}/sb3-u2-blossom/${repo}:${IMAGE_TAG}"
 
-            docker build -f "${SERVICE_DIR}/Dockerfile" -t "${IMAGE_URI}" .
+            docker build -f "${repo}/Dockerfile" -t "${IMAGE_URI}" .
             docker push "${IMAGE_URI}"
 
             echo "✔ Pushed: ${IMAGE_URI}"
@@ -90,22 +87,21 @@ jobs:
           done <<< "$SERVICES"
 
       # ============================================================
-      # 5️⃣ manifests repo 이미지 태그 업데이트
+      # 5️⃣ manifests repo 이미지 태그 업데이트 (핵심 수정 부분)
       # ============================================================
       - name: Update image tag in manifests repository
         env:
           MANIFEST_TOKEN: ${{ secrets.blossommanifestToken }}
         run: |
           set -e
-
           git clone https://x-access-token:${MANIFEST_TOKEN}@github.com/jihyun2256/blossommanifest.git manifests
           cd manifests
 
-          while IFS=' ' read -r name repo; do
-            [ -z "$name" ] && continue
+          while IFS=' ' read -r manifest repo; do
+            [ -z "$manifest" ] && continue
             [ -z "$repo" ] && continue
 
-            YAML_FILE="apps/${name}.yaml"
+            YAML_FILE="apps/${manifest}.yaml"
             NEW_IMAGE="${ECR_REGISTRY}/sb3-u2-blossom/${repo}:${IMAGE_TAG}"
 
             if [ ! -f "$YAML_FILE" ]; then
@@ -114,8 +110,15 @@ jobs:
             fi
 
             echo "▶ Updating ${YAML_FILE}"
-            sed -i "/image:/c\        image: ${NEW_IMAGE}" "${YAML_FILE}"
+            echo "🔍 Before:"
+            grep "image:" "$YAML_FILE" || true
 
+            # 안전한 image 치환 (repo 기준)
+            sed -i "s|image: .*sb3-u2-blossom/${repo}:.*|        image: ${NEW_IMAGE}|g" "$YAML_FILE"
+
+            echo "✅ After:"
+            grep "image:" "$YAML_FILE" || true
+            echo ""
           done <<< "$SERVICES"
 
           git config user.email "actions@github.com"
