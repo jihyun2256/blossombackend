@@ -20,9 +20,9 @@ jobs:
     env:
       AWS_REGION: us-east-1
       ECR_REGISTRY: 337112169365.dkr.ecr.us-east-1.amazonaws.com
-      IMAGE_TAG: ${{ github.sha }}
+      IMAGE_TAG: latest
 
-      # 형식: <manifest 파일명> <backend 디렉터리 & ecr suffix>
+      # <manifest 파일명> <backend 디렉터리 & ecr suffix>
       SERVICES: |
         users user-api
         products product-api
@@ -56,7 +56,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       # ============================================================
-      # 4️⃣ Docker build & ECR push
+      # 4️⃣ Docker build & ECR push (latest)
       # ============================================================
       - name: Build & Push all microservices images
         env:
@@ -69,7 +69,7 @@ jobs:
 
             echo "========================================"
             echo "Building service: ${repo}"
-            echo "Image tag: ${IMAGE_TAG}"
+            echo "Image tag: latest"
             echo "========================================"
 
             if [ ! -f "./${repo}/Dockerfile" ]; then
@@ -77,7 +77,7 @@ jobs:
               continue
             fi
 
-            IMAGE_URI="${REGISTRY}/sb3-u2-blossom/${repo}:${IMAGE_TAG}"
+            IMAGE_URI="${REGISTRY}/sb3-u2-blossom/${repo}:latest"
 
             docker build -f "${repo}/Dockerfile" -t "${IMAGE_URI}" .
             docker push "${IMAGE_URI}"
@@ -87,7 +87,7 @@ jobs:
           done <<< "$SERVICES"
 
       # ============================================================
-      # 5️⃣ manifests repo 이미지 태그 업데이트 (핵심 수정 부분)
+      # 5️⃣ manifests repo image를 항상 :latest로 고정
       # ============================================================
       - name: Update image tag in manifests repository
         env:
@@ -102,23 +102,15 @@ jobs:
             [ -z "$repo" ] && continue
 
             YAML_FILE="apps/${manifest}.yaml"
-            NEW_IMAGE="${ECR_REGISTRY}/sb3-u2-blossom/${repo}:${IMAGE_TAG}"
+            NEW_IMAGE="${ECR_REGISTRY}/sb3-u2-blossom/${repo}:latest"
 
             if [ ! -f "$YAML_FILE" ]; then
               echo "❌ ${YAML_FILE} not found — skipping"
               continue
             fi
 
-            echo "▶ Updating ${YAML_FILE}"
-            echo "🔍 Before:"
-            grep "image:" "$YAML_FILE" || true
-
-            # 안전한 image 치환 (repo 기준)
+            echo "▶ Updating ${YAML_FILE} to :latest"
             sed -i "s|image: .*sb3-u2-blossom/${repo}:.*|        image: ${NEW_IMAGE}|g" "$YAML_FILE"
-
-            echo "✅ After:"
-            grep "image:" "$YAML_FILE" || true
-            echo ""
           done <<< "$SERVICES"
 
           git config user.email "actions@github.com"
@@ -126,7 +118,7 @@ jobs:
 
           if git status --porcelain | grep .; then
             git add apps/*.yaml
-            git commit -m "chore: update image tags to ${IMAGE_TAG}"
+            git commit -m "chore: set all images to latest"
             git push origin main
           else
             echo "ℹ️ No changes detected"
